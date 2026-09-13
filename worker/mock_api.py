@@ -7,11 +7,16 @@ SLACK_DB_FILE = "shared/slack_db.json"
 def _load_db(file_path):
     if not os.path.exists(file_path):
         return {}
-    with open(file_path, "r") as f:
+    import time
+    for _ in range(5):
         try:
-            return json.load(f)
+            with open(file_path, "r") as f:
+                return json.load(f)
         except json.JSONDecodeError:
-            return {}
+            time.sleep(0.1)
+        except Exception:
+            time.sleep(0.1)
+    return {}
 
 def _save_db(file_path, data):
     with open(file_path, "w") as f:
