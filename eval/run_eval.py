@@ -11,9 +11,16 @@ from worker.agent import process_email
 from verifier.agent import run_verifier
 
 def clear_dbs():
-    for f in ["shared/action_log.jsonl", "shared/verifications.jsonl", "shared/notion_db.json", "shared/slack_db.json"]:
+    for f in ["shared/action_log.jsonl", "shared/verifications.jsonl"]:
         if os.path.exists(f):
-            open(f, 'w').close() # Truncate or create empty
+            open(f, 'w').close()  # Truncate to empty
+    # Reset JSON dbs to valid empty objects (not blank files)
+    for f in ["shared/notion_db.json", "shared/slack_db.json"]:
+        with open(f, 'w') as fh:
+            json.dump({}, fh)
+    # Reset slack to proper structure
+    with open("shared/slack_db.json", "w") as fh:
+        json.dump({"#verity-status": [], "#verity-alerts": []}, fh)
 
 def run_eval():
     clear_dbs()
@@ -47,8 +54,8 @@ def run_eval():
         except Exception as e:
             print(f"Verifier Error: {e}")
         
-        # 3. Throttle
-        time.sleep(4.5)
+        # Throttle: compound-mini allows ~30 RPM; 2 LLM calls per email pair → need ~4s gap minimum
+        time.sleep(8)
 
     # --- Compute Metrics ---
     action_map = {}
@@ -77,7 +84,7 @@ def run_eval():
     fail_count = sum(1 for v in verifications if v["result"] == "FAIL")
     
     auto_fixed = sum(1 for v in verifications if v.get("remediation") == "reverted")
-    escalated = sum(1 for v in verifications if v.get("remediation") == "escalated")
+    escalated  = sum(1 for v in verifications if v.get("remediation") == "escalated")
     
     latencies = [v.get("latency_ms", 0) for v in verifications]
     median_latency = statistics.median(latencies) if latencies else 0

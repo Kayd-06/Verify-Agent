@@ -64,7 +64,7 @@ Respond with JSON ONLY containing keys 'derived_target_id' and 'reasoning'."""
     _rate_limit()
 
     response = client.chat.completions.create(
-        model="compound-beta",
+        model="groq/compound-mini",
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"}
     )

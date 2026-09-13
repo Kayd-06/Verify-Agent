@@ -72,7 +72,7 @@ def process_email(email):
     """
     
     response = client.chat.completions.create(
-        model='compound-beta',
+        model='groq/compound-mini',
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"}
     )
@@ -149,8 +149,8 @@ def run_worker():
             process_email(email)
         except Exception as e:
             print(f"Error processing email: {e}")
-        # Sleep slightly to avoid generic API limits, though Groq is more generous
-        time.sleep(2)
+        # Sleep to avoid Groq RPM rate limits
+        time.sleep(5)
 
 if __name__ == "__main__":
     run_worker()

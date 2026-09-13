@@ -1,68 +1,68 @@
 {
-  "ticket_39e686": {
+  "ticket_7d1e08": {
     "status": "open",
-    "category": "bug",
-    "summary": "The app crashes on startup on iOS 17.",
+    "category": "support",
+    "summary": "App crashes on startup on iOS 17.",
     "priority": "high"
   },
-  "ticket_c59f0f81": {
+  "ticket_391893": {
     "status": "open",
     "category": "billing",
     "summary": "Customer wants to change billing cycle from monthly to annual.",
     "priority": "low"
   },
-  "ticket_fce7b6": {
+  "ticket_c4eb4d": {
     "status": "open",
     "category": "feature_request",
-    "summary": "Add dark mode to the application for better nighttime usability.",
+    "summary": "Request to add a dark mode feature to the application for better user comfort during nighttime use.",
     "priority": "medium"
   },
-  "ticket_01685a": {
-    "status": "open",
-    "category": "access",
-    "summary": "User is unable to receive password reset emails and requests manual reset",
-    "priority": "high"
-  },
-  "ticket_00a418": {
+  "ticket_abc123": {
     "status": "open",
     "category": "billing",
-    "summary": "Request for PDF invoice for August for accounting purposes.",
-    "priority": "low"
-  },
-  "project_alpha": {
-    "status": "open",
-    "category": "status_update",
-    "summary": "[REVERTED BY VERITY]",
+    "summary": "User wants to switch from a monthly to an annual billing cycle.",
     "priority": "medium"
   },
-  "ticket_acme_refund": {
-    "status": "open",
-    "category": "billing",
-    "summary": "[REVERTED BY VERITY]",
-    "priority": "high"
-  },
-  "ticket_jon_smith": {
-    "status": "open",
-    "category": "access",
-    "summary": "[REVERTED BY VERITY]",
-    "priority": "high"
-  },
-  "ticket_f58cc3": {
+  "ticket_127d90": {
     "status": "open",
     "category": "bug",
-    "summary": "User encountered a bug while using a product/feature.",
+    "summary": "The app crashes immediately on startup on iOS 17.",
     "priority": "high"
   },
-  "ticket_f75763": {
+  "ticket_6dec95": {
     "status": "open",
-    "category": "support",
-    "summary": "Request to cancel an unspecified item.",
+    "category": "billing",
+    "summary": "Request for August invoice PDF for accounting purposes.",
+    "priority": "low"
+  },
+  "ticket_d13a085a": {
+    "status": "open",
+    "category": "billing",
+    "summary": "Customer wants to change their billing cycle from monthly to annual.",
+    "priority": "low"
+  },
+  "ticket_7E9464": {
+    "status": "open",
+    "category": "billing",
+    "summary": "Request a refund for ACME Industries due to a recent outage.",
+    "priority": "high"
+  },
+  "user_jon_smith": {
+    "status": "open",
+    "category": "security",
+    "summary": "Reset 2FA for Jon Smith's account due to a lost phone.",
+    "priority": "high"
+  },
+  "ticket_app_crash_ios17": {
+    "status": "open",
+    "category": "bug",
+    "summary": "App crashes on startup on iOS 17 when opening the dashboard.",
+    "priority": "high"
+  },
+  "ticket_darkmode_001": {
+    "status": "open",
+    "category": "feature_request",
+    "summary": "User requests adding a dark mode to the application.",
     "priority": "medium"
-  },
-  "ticket_ec066e": {
-    "status": "open",
-    "category": "support",
-    "summary": "The user is unable to access the main portal due to an ERR 502 on all pages.",
-    "priority": "high"
   }
 }

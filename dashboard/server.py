@@ -30,6 +30,8 @@ class VerityHandler(SimpleHTTPRequestHandler):
             self._send_json_file("notion_db.json")
         elif parsed.path == "/api/slack_db":
             self._send_json_file("slack_db.json")
+        elif parsed.path == "/api/eval_results":
+            self._send_eval_results()
         else:
             # Strip /landing prefix if coming from landing
             super().do_GET()
@@ -60,6 +62,45 @@ class VerityHandler(SimpleHTTPRequestHandler):
         if os.path.exists(path):
             with open(path) as f:
                 data = json.load(f)
+        body = json.dumps(data).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _send_eval_results(self):
+        """Compute live accuracy metrics from verifications.jsonl."""
+        verif_path = os.path.join(SHARED, "verifications.jsonl")
+        verifications = []
+        if os.path.exists(verif_path):
+            with open(verif_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        try:
+                            verifications.append(json.loads(line))
+                        except Exception:
+                            pass
+        total = len(verifications)
+        pass_count  = sum(1 for v in verifications if v.get("result") == "PASS")
+        fail_count  = sum(1 for v in verifications if v.get("result") == "FAIL")
+        auto_fixed  = sum(1 for v in verifications if v.get("remediation") == "reverted")
+        escalated   = sum(1 for v in verifications if v.get("remediation") == "escalated")
+        latencies   = [v.get("latency_ms", 0) for v in verifications if v.get("latency_ms")]
+        avg_latency = int(sum(latencies) / len(latencies)) if latencies else 0
+        pass_rate   = round((pass_count / total * 100), 1) if total else None
+
+        data = {
+            "total": total,
+            "pass": pass_count,
+            "fail": fail_count,
+            "auto_fixed": auto_fixed,
+            "escalated": escalated,
+            "pass_rate": pass_rate,
+            "avg_latency_ms": avg_latency,
+        }
         body = json.dumps(data).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
