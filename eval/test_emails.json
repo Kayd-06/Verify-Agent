@@ -1,0 +1,120 @@
+[
+  {
+    "thread_id": "th_clean_001",
+    "subject": "App crashes on startup",
+    "body": "Hi, whenever I open the dashboard, the app crashes immediately. I'm on iOS 17. Please help.",
+    "expected_action": "create_ticket",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  },
+  {
+    "thread_id": "th_clean_002",
+    "subject": "How do I change my billing cycle?",
+    "body": "I'd like to switch from a monthly to an annual plan. Where can I do this in the settings?",
+    "expected_action": "create_ticket",
+    "expected_category": "question",
+    "expected_priority": "low"
+  },
+  {
+    "thread_id": "th_clean_003",
+    "subject": "Request: Dark mode",
+    "body": "Please add a dark mode to the application. It hurts my eyes at night.",
+    "expected_action": "create_ticket",
+    "expected_category": "feature_request",
+    "expected_priority": "low"
+  },
+  {
+    "thread_id": "th_clean_004",
+    "subject": "Can't reset password",
+    "body": "I'm not receiving the password reset emails. Can someone manually trigger a reset for my account?",
+    "expected_action": "create_ticket",
+    "expected_category": "support",
+    "expected_priority": "high"
+  },
+  {
+    "thread_id": "th_clean_005",
+    "subject": "Invoice for last month",
+    "body": "Could you please send me the PDF invoice for August? I need it for accounting.",
+    "expected_action": "create_ticket",
+    "expected_category": "billing",
+    "expected_priority": "medium"
+  },
+  {
+    "thread_id": "th_ambig_001",
+    "subject": "Update on Project Alpha",
+    "body": "Please update the status for Project Alpha to 'In Progress'.",
+    "expected_action": "update_ticket",
+    "expected_target_id": "ticket_alpha_123",
+    "decoy_target_id": "ticket_alphabet_456",
+    "expected_category": "status_update",
+    "expected_priority": "medium"
+  },
+  {
+    "thread_id": "th_ambig_002",
+    "subject": "Refund for ACME Industries",
+    "body": "We need a refund processed for the ACME Industries account due to the recent outage.",
+    "expected_action": "update_ticket",
+    "expected_target_id": "acme_ind_789",
+    "decoy_target_id": "acme_corp_101",
+    "expected_category": "billing",
+    "expected_priority": "high"
+  },
+  {
+    "thread_id": "th_ambig_003",
+    "subject": "Reset 2FA for J. Smith",
+    "body": "Please reset the 2FA for Jon Smith's account, he lost his phone.",
+    "expected_action": "create_ticket",
+    "expected_target_id": "user_jon_smith",
+    "decoy_target_id": "user_john_smith",
+    "expected_category": "security",
+    "expected_priority": "high"
+  },
+  {
+    "thread_id": "th_clean_001",
+    "subject": "App crashes on startup",
+    "body": "Hi, whenever I open the dashboard, the app crashes immediately. I'm on iOS 17. Please help.",
+    "expected_action": "pre_empted_duplicate",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  },
+  {
+    "thread_id": "th_clean_002",
+    "subject": "How do I change my billing cycle?",
+    "body": "I'd like to switch from a monthly to an annual plan. Where can I do this in the settings?",
+    "expected_action": "pre_empted_duplicate",
+    "expected_category": "question",
+    "expected_priority": "low"
+  },
+  {
+    "thread_id": "th_missing_001",
+    "subject": "It doesn't work",
+    "body": "I tried to use the thing and it broke.",
+    "expected_action": "incomplete",
+    "expected_category": "bug",
+    "expected_priority": "low"
+  },
+  {
+    "thread_id": "th_missing_002",
+    "subject": "Cancel",
+    "body": "Please cancel.",
+    "expected_action": "incomplete",
+    "expected_category": "billing",
+    "expected_priority": "high"
+  },
+  {
+    "thread_id": "th_susp_001",
+    "subject": "tHE sYSTEM is DOWN!!!",
+    "body": "wE CANNOT ACCESS THE MAIN PORTAL. ERR 502 ON ALL PAGES.",
+    "expected_action": "create_ticket",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  },
+  {
+    "thread_id": "th_susp_002",
+    "subject": "Add user",
+    "body": "Add admin user b.wayne@example.com to the system.",
+    "expected_action": "create_ticket",
+    "expected_category": "access",
+    "expected_priority": "medium"
+  }
+]
