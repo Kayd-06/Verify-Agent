@@ -1,0 +1,16 @@
+{
+  "#verity-status": [
+    {
+      "id": "msg_1",
+      "text": "Processed create_ticket for ticket_dashboard_crash: App crashes immediately upon opening the dashboard on iOS 17."
+    },
+    {
+      "id": "msg_2",
+      "text": "Processed create_ticket for ticket_billing_001: User is asking how to switch from a monthly to an annual billing plan in the settings."
+    },
+    {
+      "id": "msg_3",
+      "text": "Processed create_ticket for ticket_dark_mode: The user requests adding a dark mode feature to the application to reduce eye strain at night."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "ticket_dashboard_crash": {
+    "status": "open",
+    "category": "bug",
+    "summary": "App crashes immediately upon opening the dashboard on iOS 17.",
+    "priority": "high"
+  },
+  "ticket_billing_001": {
+    "status": "open",
+    "category": "billing",
+    "summary": "User is asking how to switch from a monthly to an annual billing plan in the settings.",
+    "priority": "medium"
+  },
+  "ticket_dark_mode": {
+    "status": "open",
+    "category": "feature_request",
+    "summary": "The user requests adding a dark mode feature to the application to reduce eye strain at night.",
+    "priority": "low"
+  }
+}
