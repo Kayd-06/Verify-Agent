@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verity — Live Dashboard</title>
+  <link rel="icon" type="image/jpeg" href="../landing/assets/favicon.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #0A0D12;
+      --panel: #12161D;
+      --line:  #232933;
+      --text:  #E8EAED;
+      --muted: #7C8697;
+      --cyan:  #5EEAD4;
+      --coral: #FF6B57;
+      --amber: #F5B942;
+      --font-serif: 'Fraunces', Georgia, serif;
+      --font-mono:  'JetBrains Mono', 'Courier New', monospace;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 2px; }
+
+    /* ──── HEADER ──── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      height: 52px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+      gap: 1rem;
+    }
+
+    .hdr-left { display: flex; align-items: center; gap: 1.25rem; }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo span { color: var(--cyan); }
+
+    .hdr-tag {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-left: 1px solid var(--line);
+      padding-left: 1rem;
+    }
+
+    .hdr-center {
+      display: flex;
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--panel);
+      border: none;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--cyan); background: rgba(94, 234, 212, 0.08); }
+
+    .hdr-right { display: flex; align-items: center; gap: 1rem; }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .live-dot::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .hdr-btn {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--line);
+      padding: 0.35rem 0.8rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      text-decoration: none;
+    }
+    .hdr-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    /* ──── KPI STRIP ──── */
+    #kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .kpi {
+      background: var(--panel);
+      padding: 0.7rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .kpi-val {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+    }
+    .kpi-val.cyan  { color: var(--cyan); }
+    .kpi-val.coral { color: var(--coral); }
+    .kpi-val.amber { color: var(--amber); }
+
+    .kpi-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ──── MAIN CONTENT ──── */
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ──── SPLIT VIEW ──── */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      overflow: hidden;
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .pane {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .pane-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 1.25rem;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .pane-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .pane-title {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .pane-count {
+      font-size: 0.65rem;
+      color: var(--muted);
+      background: rgba(35,41,51,0.6);
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+    }
+
+    .pane-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+    /* ──── ACTION CARD ──── */
+    .action-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      animation: slideIn 0.3s ease;
+      cursor: default;
+    }
+    .action-card:hover { border-color: var(--muted); }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .action-card-top {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .action-id {
+      font-size: 0.65rem;
+      color: var(--muted);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .action-time {
+      font-size: 0.62rem;
+      color: rgba(124,134,151,0.5);
+      white-space: nowrap;
+    }
+
+    .action-card-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .action-type {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--amber);
+    }
+
+    .action-arrow { color: var(--muted); font-size: 0.65rem; }
+
+    .action-target {
+      font-size: 0.72rem;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .action-summary {
+      font-size: 0.7rem;
+      color: var(--muted);
+      line-height: 1.5;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .action-hash {
+      font-size: 0.6rem;
+      color: rgba(124,134,151,0.4);
+    }
+
+    /* ──── VERDICT CARD ──── */
+    .verdict-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      animation: slideIn 0.3s ease;
+      cursor: default;
+    }
+    .verdict-card:hover { border-color: var(--muted); }
+
+    .verdict-card.pass { border-left: 2px solid var(--cyan); }
+    .verdict-card.fail { border-left: 2px solid var(--coral); }
+    .verdict-card.warn { border-left: 2px solid var(--amber); }
+
+    .verdict-top {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .verdict-id {
+      font-size: 0.65rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .verdict-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .verdict-detail {
+      font-size: 0.68rem;
+      color: var(--muted);
+      display: flex;
+      gap: 1rem;
+    }
+
+    .verdict-detail span { white-space: nowrap; }
+    .verdict-detail .key { color: rgba(124,134,151,0.5); margin-right: 0.2rem; }
+
+    .verdict-diffs {
+      background: rgba(255,107,87,0.06);
+      border: 1px solid rgba(255,107,87,0.15);
+      border-radius: 3px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.65rem;
+      color: var(--coral);
+      line-height: 1.6;
+    }
+
+    /* ──── BADGE ──── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 2px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge::before { content: '●'; font-size: 0.45rem; }
+    .badge-pass  { color: var(--cyan);  background: rgba(94,234,212,0.08);  border: 1px solid rgba(94,234,212,0.2); }
+    .badge-fail  { color: var(--coral); background: rgba(255,107,87,0.08);  border: 1px solid rgba(255,107,87,0.2); }
+    .badge-warn  { color: var(--amber); background: rgba(245,185,66,0.08);  border: 1px solid rgba(245,185,66,0.2); }
+    .badge-high  { color: var(--coral); background: rgba(255,107,87,0.06);  border: 1px solid rgba(255,107,87,0.12); }
+    .badge-low   { color: var(--amber); background: rgba(245,185,66,0.06);  border: 1px solid rgba(245,185,66,0.12); }
+
+    /* ──── NOTION TAB ──── */
+    #tab-notion { display: none; }
+    #tab-slack  { display: none; }
+
+    .db-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding: 0.75rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .db-row {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 0.75rem;
+      align-items: center;
+      animation: slideIn 0.3s ease;
+    }
+
+    .db-row-title { font-size: 0.8rem; color: var(--text); }
+    .db-row-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .msg-row {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      animation: slideIn 0.3s ease;
+    }
+
+    .msg-id { font-size: 0.62rem; color: var(--muted); }
+    .msg-text { font-size: 0.78rem; color: var(--text); line-height: 1.5; }
+
+    /* ──── EMPTY STATE ──── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .empty-state-icon { font-size: 2rem; opacity: 0.3; }
+    .empty-state-title { font-size: 0.8rem; color: var(--muted); }
+    .empty-state-sub { font-size: 0.7rem; color: rgba(124,134,151,0.5); max-width: 240px; line-height: 1.6; }
+
+    /* ──── LATENCY BAR ──── */
+    .lat-bar-wrap {
+      height: 2px;
+      background: var(--line);
+      border-radius: 1px;
+      overflow: hidden;
+      margin-top: 0.25rem;
+    }
+    .lat-bar {
+      height: 100%;
+      border-radius: 1px;
+      background: var(--cyan);
+      transition: width 0.5s ease;
+    }
+
+    /* ──── STATUS BAR ──── */
+    #status-bar {
+      height: 24px;
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      gap: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .sb-item {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .sb-item span { color: var(--text); margin-left: 0.3rem; }
+
+    /* ──── RESPONSIVE ──── */
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; }
+      #kpi-strip { grid-template-columns: repeat(3, 1fr); }
+      .hdr-center { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      #kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      header { padding: 0 0.75rem; }
+      .hdr-tag { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════ HEADER ════════════════════ -->
+  <header>
+    <div class="hdr-left">
+      <a href="../landing/" class="logo">VER<span>I</span>TY</a>
+      <span class="hdr-tag">Live Dashboard</span>
+    </div>
+
+    <div class="hdr-center">
+      <button class="tab-btn active" onclick="showTab('split')" id="btn-split">Split</button>
+      <button class="tab-btn" onclick="showTab('notion')" id="btn-notion">Notion DB</button>
+      <button class="tab-btn" onclick="showTab('slack')" id="btn-slack">Slack Feed</button>
+    </div>
+
+    <div class="hdr-right">
+      <span class="live-dot" id="live-indicator">live</span>
+      <button class="hdr-btn" onclick="refresh()" aria-label="Refresh data">↻ Refresh</button>
+      <a href="../landing/" class="hdr-btn">← Landing</a>
+    </div>
+  </header>
+
+  <!-- ════════════════════ KPI STRIP ════════════════════ -->
+  <div id="kpi-strip" role="region" aria-label="Key metrics">
+    <div class="kpi">
+      <span class="kpi-val cyan" id="kpi-total">—</span>
+      <span class="kpi-label">Total Actions</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val cyan" id="kpi-pass">—</span>
+      <span class="kpi-label">Verified PASS</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val coral" id="kpi-fail">—</span>
+      <span class="kpi-label">Caught FAIL</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val amber" id="kpi-pending">—</span>
+      <span class="kpi-label">Pending Verify</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val" id="kpi-avg-lat">—</span>
+      <span class="kpi-label">Avg Verify Latency</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val cyan" id="kpi-retries">—</span>
+      <span class="kpi-label">Total Retries Used</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════ MAIN ════════════════════ -->
+  <main>
+
+    <!-- ── SPLIT TAB (default) ── -->
+    <div class="split" id="tab-split">
+
+      <!-- Worker Pane -->
+      <div class="pane">
+        <div class="pane-header">
+          <span class="pane-dot" style="background:var(--amber)"></span>
+          <span class="pane-title">W1 · action_log.jsonl</span>
+          <span class="pane-count" id="action-count">0 actions</span>
+        </div>
+        <div class="pane-body" id="action-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-title">No actions yet</div>
+            <div class="empty-state-sub">Run the worker agent to start processing emails and writing actions here.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verifier Pane -->
+      <div class="pane">
+        <div class="pane-header">
+          <span class="pane-dot" style="background:var(--cyan)"></span>
+          <span class="pane-title">V2 · verifications.jsonl</span>
+          <span class="pane-count" id="verdict-count">0 verdicts</span>
+        </div>
+        <div class="pane-body" id="verdict-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No verifications yet</div>
+            <div class="empty-state-sub">Run the verifier agent to start auditing worker actions here.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── NOTION DB TAB ── -->
+    <div class="pane" id="tab-notion" style="flex:1">
+      <div class="pane-header">
+        <span class="pane-dot" style="background:var(--amber)"></span>
+        <span class="pane-title">Notion DB — ticket store</span>
+        <span class="pane-count" id="notion-count">0 tickets</span>
+      </div>
+      <div class="db-grid" id="notion-list">
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-title">No Notion tickets yet</div>
+          <div class="empty-state-sub">Run the worker to populate the Notion mock DB.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SLACK TAB ── -->
+    <div class="pane" id="tab-slack" style="flex:1">
+      <div class="pane-header">
+        <span class="pane-dot" style="background:var(--cyan)"></span>
+        <span class="pane-title">Slack — #verity-status feed</span>
+        <span class="pane-count" id="slack-count">0 messages</span>
+      </div>
+      <div class="db-grid" id="slack-list">
+        <div class="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <div class="empty-state-title">No Slack messages yet</div>
+          <div class="empty-state-sub">Run the worker to populate the Slack mock feed.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ════════════════════ STATUS BAR ════════════════════ -->
+  <div id="status-bar" role="status" aria-live="polite">
+    <span class="sb-item">Last refresh: <span id="sb-time">—</span></span>
+    <span class="sb-item">Actions: <span id="sb-actions">0</span></span>
+    <span class="sb-item">Verdicts: <span id="sb-verdicts">0</span></span>
+    <span class="sb-item">Pass rate: <span id="sb-passrate">—</span></span>
+    <span class="sb-item" style="margin-left:auto">API: <span id="sb-api" style="color:var(--cyan)">connected</span></span>
+  </div>
+
+  <script>
+  (() => {
+    /* ─── State ─── */
+    let actions = [];
+    let verdicts = [];
+    let notionDb = {};
+    let slackDb = [];
+    let currentTab = 'split';
+
+    /* ─── Tab switching ─── */
+    window.showTab = (tab) => {
+      currentTab = tab;
+      ['split', 'notion', 'slack'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`btn-${t}`);
+        el.style.display = 'none';
+        btn?.classList.remove('active');
+      });
+      const active = document.getElementById(`tab-${tab}`);
+      active.style.display = tab === 'split' ? 'grid' : 'flex';
+      document.getElementById(`btn-${tab}`)?.classList.add('active');
+    };
+
+    /* ─── Fetch helpers ─── */
+    async function fetchJSON(url) {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      } catch {
+        return null;
+      }
+    }
+
+    /* ─── Formatting helpers ─── */
+    function fmtTime(iso) {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleTimeString('en-GB', { hour12: false });
+      } catch { return iso; }
+    }
+
+    function fmtMs(ms) {
+      if (ms === undefined || ms === null) return '—';
+      if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`;
+      return `${ms}ms`;
+    }
+
+    function latBarWidth(ms) {
+      // max reference: 15s = 100%
+      return Math.min((ms / 15000) * 100, 100);
+    }
+
+    /* ─── Action card ─── */
+    function actionCard(a) {
+      const app = a.target_app || 'unknown';
+      const appColor = app === 'notion' ? 'var(--amber)' : 'var(--cyan)';
+      const shortId = (a.action_id || '').slice(0, 10);
+      const shortHash = (a.content_hash || '').replace('sha1:', '').slice(0, 12);
+      const summary = a.claimed_result?.summary || a.claimed_state?.summary || '—';
+
+      const stateFields = a.claimed_state
+        ? Object.entries(a.claimed_state)
+            .filter(([k]) => k !== 'summary')
+            .map(([k, v]) => `<span style="color:rgba(124,134,151,0.5)">${k}:</span> ${v}`)
+            .join('  ·  ')
+        : '';
+
+      return `<div class="action-card">
+        <div class="action-card-top">
+          <span class="action-id" title="${a.action_id}">${shortId}…</span>
+          <span class="action-time">${fmtTime(a.timestamp)}</span>
+          <span class="badge" style="color:${appColor};background:rgba(94,234,212,0.06);border:1px solid rgba(94,234,212,0.12)">${app}</span>
+        </div>
+        <div class="action-card-row">
+          <span class="action-type">${a.action_type || '—'}</span>
+          <span class="action-arrow">→</span>
+          <span class="action-target" title="${a.target_id}">${a.target_id || '—'}</span>
+        </div>
+        ${summary ? `<div class="action-summary">${summary}</div>` : ''}
+        ${stateFields ? `<div style="font-size:0.65rem;color:var(--muted)">${stateFields}</div>` : ''}
+        ${shortHash ? `<div class="action-hash">sha1: ${shortHash}…</div>` : ''}
+      </div>`;
+    }
+
+    /* ─── Verdict card ─── */
+    function verdictCard(v) {
+      const result = (v.result || 'UNKNOWN').toLowerCase();
+      const cls = result === 'pass' ? 'pass' : result === 'fail' ? 'fail' : 'warn';
+      const badgeCls = `badge-${cls}`;
+      const confCls = v.confidence === 'high' ? (result === 'fail' ? 'badge-high' : 'badge-pass') : 'badge-low';
+      const shortId = (v.action_id || '').slice(0, 10);
+      const diffs = v.diffs || [];
+      const cat = v.failure_category || 'none';
+      const latMs = v.latency_ms || 0;
+      const w = latBarWidth(latMs);
+
+      return `<div class="verdict-card ${cls}">
+        <div class="verdict-top">
+          <span class="verdict-id" title="${v.action_id}">${shortId}…</span>
+          <span class="action-time">${fmtTime(v.verified_at)}</span>
+          <span class="badge ${badgeCls}">${v.result || '?'}</span>
+          <span class="badge ${confCls}">${v.confidence || '?'}</span>
+        </div>
+        <div class="verdict-detail">
+          <span><span class="key">cat</span>${cat}</span>
+          <span><span class="key">retries</span>${v.settle_retries ?? '—'}</span>
+          <span><span class="key">lat</span>${fmtMs(latMs)}</span>
+          <span><span class="key">target</span>${v.derived_correct_target || '—'}</span>
+        </div>
+        <div class="lat-bar-wrap"><div class="lat-bar" style="width:${w}%"></div></div>
+        ${diffs.length ? `<div class="verdict-diffs">${diffs.map(d => `⚠ ${d}`).join('<br/>')}</div>` : ''}
+      </div>`;
+    }
+
+    /* ─── Notion DB row ─── */
+    function notionRow(id, ticket) {
+      const statusColor = ticket.status === 'open' ? 'var(--amber)' : ticket.status === 'closed' ? 'var(--muted)' : 'var(--cyan)';
+      const prioColor = ticket.priority === 'high' ? 'var(--coral)' : ticket.priority === 'medium' ? 'var(--amber)' : 'var(--muted)';
+      return `<div class="db-row">
+        <div>
+          <div class="db-row-title">${id}</div>
+          <div class="db-row-sub">${ticket.summary || '—'}</div>
+        </div>
+        <span class="badge" style="color:${statusColor};background:transparent;border:1px solid ${statusColor}22">${ticket.status || '?'}</span>
+        <span class="badge badge-warn">${ticket.category || '?'}</span>
+        <span class="badge" style="color:${prioColor};background:transparent;border:1px solid ${prioColor}22">${ticket.priority || '?'}</span>
+      </div>`;
+    }
+
+    /* ─── Slack message row ─── */
+    function slackRow(msg) {
+      return `<div class="msg-row">
+        <span class="msg-id">${msg.id || '—'}</span>
+        <span class="msg-text">${msg.text || '—'}</span>
+      </div>`;
+    }
+
+    /* ─── Compute KPIs ─── */
+    function updateKPIs() {
+      const total = actions.length;
+      const verifiedIds = new Set(verdicts.map(v => v.action_id));
+      const pass = verdicts.filter(v => v.result === 'PASS').length;
+      const fail = verdicts.filter(v => v.result === 'FAIL').length;
+      const pending = total - verifiedIds.size;
+      const avgLat = verdicts.length
+        ? Math.round(verdicts.reduce((s, v) => s + (v.latency_ms || 0), 0) / verdicts.length)
+        : null;
+      const totalRetries = verdicts.reduce((s, v) => s + (v.settle_retries || 0), 0);
+      const passRate = verdicts.length ? Math.round((pass / verdicts.length) * 100) : null;
+
+      document.getElementById('kpi-total').textContent = total || '—';
+      document.getElementById('kpi-pass').textContent = pass || '—';
+      document.getElementById('kpi-fail').textContent = fail || (fail === 0 && verdicts.length ? '0' : '—');
+      document.getElementById('kpi-pending').textContent = pending > 0 ? pending : (total > 0 ? '0' : '—');
+      document.getElementById('kpi-avg-lat').textContent = avgLat !== null ? fmtMs(avgLat) : '—';
+      document.getElementById('kpi-retries').textContent = totalRetries || (verdicts.length ? '0' : '—');
+
+      // status bar
+      document.getElementById('sb-actions').textContent = total;
+      document.getElementById('sb-verdicts').textContent = verdicts.length;
+      document.getElementById('sb-passrate').textContent = passRate !== null ? `${passRate}%` : '—';
+      document.getElementById('sb-time').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    }
+
+    /* ─── Render panes ─── */
+    function render() {
+      // Actions
+      const al = document.getElementById('action-list');
+      document.getElementById('action-count').textContent = `${actions.length} action${actions.length !== 1 ? 's' : ''}`;
+      if (actions.length) {
+        al.innerHTML = [...actions].reverse().map(actionCard).join('');
+      } else {
+        al.innerHTML = `<div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div class="empty-state-title">No actions yet</div>
+          <div class="empty-state-sub">Run the worker agent: <code>python -m worker.agent</code></div>
+        </div>`;
+      }
+
+      // Verdicts
+      const vl = document.getElementById('verdict-list');
+      document.getElementById('verdict-count').textContent = `${verdicts.length} verdict${verdicts.length !== 1 ? 's' : ''}`;
+      if (verdicts.length) {
+        vl.innerHTML = [...verdicts].reverse().map(verdictCard).join('');
+      } else {
+        vl.innerHTML = `<div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-title">No verifications yet</div>
+          <div class="empty-state-sub">Run the verifier: <code>python -m verifier.agent</code></div>
+        </div>`;
+      }
+
+      // Notion DB
+      const nl = document.getElementById('notion-list');
+      const notionEntries = Object.entries(notionDb);
+      document.getElementById('notion-count').textContent = `${notionEntries.length} ticket${notionEntries.length !== 1 ? 's' : ''}`;
+      nl.innerHTML = notionEntries.length
+        ? notionEntries.map(([id, t]) => notionRow(id, t)).join('')
+        : `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tickets yet</div></div>`;
+
+      // Slack
+      const sl = document.getElementById('slack-list');
+      const msgs = Array.isArray(slackDb) ? slackDb : (slackDb['#verity-status'] || []);
+      document.getElementById('slack-count').textContent = `${msgs.length} message${msgs.length !== 1 ? 's' : ''}`;
+      sl.innerHTML = msgs.length
+        ? [...msgs].reverse().map(slackRow).join('')
+        : `<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-title">No messages yet</div></div>`;
+
+      updateKPIs();
+    }
+
+    /* ─── Main refresh ─── */
+    window.refresh = async () => {
+      const indicator = document.getElementById('live-indicator');
+      const apiStatus = document.getElementById('sb-api');
+
+      const [a, v, n, s] = await Promise.all([
+        fetchJSON('/api/actions'),
+        fetchJSON('/api/verifications'),
+        fetchJSON('/api/notion_db'),
+        fetchJSON('/api/slack_db'),
+      ]);
+
+      if (a !== null) {
+        actions = a;
+        verdicts = v || [];
+        notionDb = n || {};
+        slackDb = s || [];
+        apiStatus.style.color = 'var(--cyan)';
+        apiStatus.textContent = 'connected';
+      } else {
+        apiStatus.style.color = 'var(--coral)';
+        apiStatus.textContent = 'offline — serving static';
+      }
+
+      render();
+    };
+
+    /* ─── Auto-poll every 4s ─── */
+    refresh();
+    setInterval(refresh, 4000);
+  })();
+  </script>
+</body>
+</html>
