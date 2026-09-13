@@ -2,6 +2,9 @@
   <img src="https://img.shields.io/badge/Status-Hackathon_Ready-success?style=for-the-badge" alt="Status" />
   <h1>🛡️ Verity</h1>
   <p><b>An AI Agent that audits, verifies, and remediates other AI Agents in real-time.</b></p>
+  <br>
+  <!-- TODO: Drop a 10-second GIF of the "ATTACK BLOCKED" dashboard overlay here -->
+  <img src="https://via.placeholder.com/800x450/161B24/5EEAD4?text=Dashboard+Demo+GIF+Goes+Here" alt="Verity Dashboard Demo" width="800">
 </div>
 
 ---
