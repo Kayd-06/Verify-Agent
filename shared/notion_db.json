@@ -1,20 +1,50 @@
 {
-  "ticket_dashboard_crash": {
+  "ticket_ios17_crash": {
     "status": "open",
     "category": "bug",
     "summary": "App crashes immediately upon opening the dashboard on iOS 17.",
     "priority": "high"
   },
-  "ticket_billing_001": {
+  "ticket_billing_change": {
     "status": "open",
     "category": "billing",
-    "summary": "User is asking how to switch from a monthly to an annual billing plan in the settings.",
-    "priority": "medium"
+    "summary": "User is asking how to switch their subscription from a monthly to an annual plan.",
+    "priority": "low"
   },
-  "ticket_dark_mode": {
+  "ticket_dark_mode_req": {
     "status": "open",
     "category": "feature_request",
-    "summary": "The user requests adding a dark mode feature to the application to reduce eye strain at night.",
+    "summary": "The user is requesting a dark mode feature to reduce eye strain at night.",
+    "priority": "low"
+  },
+  "ticket_e0735c": {
+    "status": "open",
+    "category": "bug",
+    "summary": "App crashes on startup on iOS 17.",
+    "priority": "high"
+  },
+  "ticket_d6b2e0": {
+    "status": "open",
+    "category": "billing",
+    "summary": "User wants to change their billing cycle from monthly to annual.",
+    "priority": "low"
+  },
+  "ticket_3bcb1c": {
+    "status": "open",
+    "category": "bug",
+    "summary": "The app crashes on startup on iOS 17.",
+    "priority": "high"
+  },
+  "ticket_billing_change_001": {
+    "status": "open",
+    "category": "billing",
+    "summary": "User wants to change billing cycle from monthly to annual.",
+    "priority": "medium"
+  },
+  "ticket_2d492c": {
+    "status": "open",
+    "category": "feature_request",
+    "summary": "Request for adding a dark mode feature to the application",
     "priority": "low"
   }
 }

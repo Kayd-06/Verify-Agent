@@ -2,15 +2,35 @@
   "#verity-status": [
     {
       "id": "msg_1",
-      "text": "Processed create_ticket for ticket_dashboard_crash: App crashes immediately upon opening the dashboard on iOS 17."
+      "text": "Processed create_ticket for ticket_ios17_crash: App crashes immediately upon opening the dashboard on iOS 17."
     },
     {
       "id": "msg_2",
-      "text": "Processed create_ticket for ticket_billing_001: User is asking how to switch from a monthly to an annual billing plan in the settings."
+      "text": "Processed create_ticket for ticket_billing_change: User is asking how to switch their subscription from a monthly to an annual plan."
     },
     {
       "id": "msg_3",
-      "text": "Processed create_ticket for ticket_dark_mode: The user requests adding a dark mode feature to the application to reduce eye strain at night."
+      "text": "Processed create_ticket for ticket_dark_mode_req: The user is requesting a dark mode feature to reduce eye strain at night."
+    },
+    {
+      "id": "msg_4",
+      "text": "Processed create_ticket for ticket_e0735c: App crashes on startup on iOS 17."
+    },
+    {
+      "id": "msg_5",
+      "text": "Processed create_ticket for ticket_d6b2e0: User wants to change their billing cycle from monthly to annual."
+    },
+    {
+      "id": "msg_6",
+      "text": "Processed create_ticket for ticket_3bcb1c: The app crashes on startup on iOS 17."
+    },
+    {
+      "id": "msg_7",
+      "text": "Processed create_ticket for ticket_billing_change_001: User wants to change billing cycle from monthly to annual."
+    },
+    {
+      "id": "msg_8",
+      "text": "Processed create_ticket for ticket_2d492c: Request for adding a dark mode feature to the application"
     }
   ]
 }
