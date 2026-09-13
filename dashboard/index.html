@@ -202,10 +202,13 @@
     .pane-slack    { grid-column: 3; grid-row: 2; }
 
     .pane-head {
-      display: flex; align-items: center; gap: 6px;
-      padding: 0.5rem 0.85rem;
+      display: flex; align-items: flex-start; flex-direction: column;
+      padding: 0.6rem 0.85rem;
       border-bottom: 1px solid rgba(35,41,51,0.6);
       flex-shrink: 0;
+    }
+    .ph-row {
+      display: flex; align-items: center; gap: 6px; width: 100%;
     }
 
     .ph-dot {
@@ -213,8 +216,12 @@
     }
 
     .ph-title {
-      font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--muted); flex: 1;
+      font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text); flex: 1; font-weight: 500;
+    }
+
+    .ph-sub {
+      font-size: 0.5rem; color: var(--muted); margin-left: 12px; margin-top: 2px;
     }
 
     .ph-count {
@@ -279,7 +286,7 @@
     }
 
     .card-id { font-size: 0.6rem; color: var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .card-time { font-size: 0.55rem; color: rgba(124,134,151,0.4); white-space:nowrap; }
+    .card-time { font-size: 0.55rem; color: rgba(124,134,151,0.4); white-space:nowrap; margin-left: auto; }
 
     .card-row2 {
       display: flex; align-items: center; gap: 5px; flex-wrap:wrap;
@@ -427,32 +434,32 @@
   <div class="kpi kpi-cyan">
     <svg class="kpi-spark" id="spark-0" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
     <span class="kpi-val c-cyan" id="kv-total">—</span>
-    <span class="kpi-label">Total Actions</span>
+    <span class="kpi-label">Tasks Handled</span>
   </div>
   <div class="kpi kpi-cyan">
     <svg class="kpi-spark" id="spark-1" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
     <span class="kpi-val c-cyan" id="kv-pass">—</span>
-    <span class="kpi-label">Verified Pass</span>
+    <span class="kpi-label">Approved</span>
   </div>
   <div class="kpi kpi-coral">
     <svg class="kpi-spark" id="spark-2" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
     <span class="kpi-val c-coral" id="kv-fail">—</span>
-    <span class="kpi-label">Caught Fail</span>
+    <span class="kpi-label">Issues Caught</span>
   </div>
   <div class="kpi kpi-amber">
     <svg class="kpi-spark" id="spark-3" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
     <span class="kpi-val c-amber" id="kv-pending">—</span>
-    <span class="kpi-label">Pending Verify</span>
+    <span class="kpi-label">Checking...</span>
   </div>
   <div class="kpi kpi-cyan">
     <svg class="kpi-spark" id="spark-4" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
     <span class="kpi-val" id="kv-lat">—</span>
-    <span class="kpi-label">Avg Latency</span>
+    <span class="kpi-label">Avg Speed</span>
   </div>
   <div class="kpi kpi-cyan">
     <svg class="kpi-spark" id="spark-5" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
     <span class="kpi-val c-cyan" id="kv-rate">—</span>
-    <span class="kpi-label">Pass Rate</span>
+    <span class="kpi-label">Success Rate</span>
   </div>
 </div>
 
@@ -462,9 +469,12 @@
   <!-- Worker Pane -->
   <div class="pane pane-worker">
     <div class="pane-head">
-      <span class="ph-dot" style="background:var(--amber)"></span>
-      <span class="ph-title">W1 · action_log.jsonl — Worker Agent</span>
-      <span class="ph-count" id="pc-actions">0</span>
+      <div class="ph-row">
+        <span class="ph-dot" style="background:var(--amber)"></span>
+        <span class="ph-title">AI Assistant Activity (Worker)</span>
+        <span class="ph-count" id="pc-actions">0</span>
+      </div>
+      <div class="ph-sub">Tasks the AI is performing right now</div>
     </div>
     <div class="pane-body" id="action-list"></div>
   </div>
@@ -472,9 +482,12 @@
   <!-- Verifier Pane -->
   <div class="pane pane-verifier">
     <div class="pane-head">
-      <span class="ph-dot" style="background:var(--cyan)"></span>
-      <span class="ph-title">V2 · verifications.jsonl — Verifier Agent</span>
-      <span class="ph-count" id="pc-verdicts">0</span>
+      <div class="ph-row">
+        <span class="ph-dot" style="background:var(--cyan)"></span>
+        <span class="ph-title">Quality Control (Verifier)</span>
+        <span class="ph-count" id="pc-verdicts">0</span>
+      </div>
+      <div class="ph-sub">Double-checking the AI's work for mistakes</div>
     </div>
     <div class="pane-body" id="verdict-list"></div>
   </div>
@@ -482,19 +495,22 @@
   <!-- Flow / Signal Pane -->
   <div class="pane pane-flow">
     <div class="pane-head">
-      <span class="ph-dot" style="background:var(--muted)"></span>
-      <span class="ph-title">Signal Flow</span>
+      <div class="ph-row">
+        <span class="ph-dot" style="background:var(--muted)"></span>
+        <span class="ph-title">System Overview</span>
+      </div>
+      <div class="ph-sub">Live connection between the two agents</div>
     </div>
     <div class="flow-canvas-wrap">
       <canvas id="flow-canvas"></canvas>
       <div class="flow-stats">
-        <div class="flow-stat">W→V: <strong id="fs-pending">—</strong></div>
+        <div class="flow-stat">checking: <strong id="fs-pending">—</strong></div>
         <div class="flow-stat">retries: <strong id="fs-retries">—</strong></div>
       </div>
     </div>
     <!-- Notion mini tickets -->
     <div style="padding:0.4rem;border-top:1px solid rgba(35,41,51,0.5)">
-      <div style="font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem;padding-left:0.1rem">Notion DB</div>
+      <div style="font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem;padding-left:0.1rem">Support Tickets (Notion)</div>
       <div id="notion-mini-list" style="display:flex;flex-direction:column;gap:0.2rem;max-height:100px;overflow-y:auto"></div>
     </div>
   </div>
@@ -502,9 +518,12 @@
   <!-- Slack Pane -->
   <div class="pane pane-slack">
     <div class="pane-head">
-      <span class="ph-dot" style="background:var(--cyan)"></span>
-      <span class="ph-title">#verity-status · Slack</span>
-      <span class="ph-count" id="pc-slack">0</span>
+      <div class="ph-row">
+        <span class="ph-dot" style="background:var(--cyan)"></span>
+        <span class="ph-title">Alerts Feed (Slack)</span>
+        <span class="ph-count" id="pc-slack">0</span>
+      </div>
+      <div class="ph-sub">Live notifications sent to the human team</div>
     </div>
     <div class="pane-body" id="slack-list"></div>
   </div>
@@ -670,15 +689,15 @@ function drawFlow() {
   ctx.shadowBlur = 0;
 
   // Worker circle
-  drawNode(ctx, wx, wy, r*0.22, '#F5B942', 'W1', 'WORKER');
+  drawNode(ctx, wx, wy, r*0.22, '#F5B942', 'AI', 'WORKER');
   // Verifier circle
-  drawNode(ctx, vx, vy, r*0.22, '#5EEAD4', 'V2', 'VERIFIER');
+  drawNode(ctx, vx, vy, r*0.22, '#5EEAD4', 'QC', 'VERIFIER');
 
   // Stats text
   ctx.fillStyle = 'rgba(124,134,151,0.5)';
   ctx.font = `500 9px JetBrains Mono, monospace`;
   ctx.textAlign = 'center';
-  ctx.fillText(`${flowActions} actions → ${flowVerdicts} verified`, cx, h - 8);
+  ctx.fillText(`${flowActions} handled → ${flowVerdicts} checked`, cx, h - 8);
 
   flowT++;
 }
@@ -773,27 +792,30 @@ function lat2pct(ms) { return Math.min((ms||0)/15000*100,100); }
 
 function actionCard(a, isNew) {
   const app = a.target_app||'none';
-  const appC = app==='notion'?'var(--amber)':'var(--cyan)';
   const id = (a.action_id||'').slice(0,10);
   const sum = a.claimed_state?.summary || a.claimed_result?.summary || '';
   const state = a.claimed_state ? Object.entries(a.claimed_state)
     .filter(([k])=>k!=='summary')
-    .map(([k,v])=>`<span class="key">${k}</span>${v}`)
+    .map(([k,v])=>`<span class="key" style="text-transform:capitalize;">${k.replace(/_/g,' ')}</span>${v}`)
     .join(' · ') : '';
   const flashCls = isNew ? ' new-flash' : '';
+  
+  let actionFriendly = a.action_type || 'Task';
+  actionFriendly = actionFriendly.replace(/_/g, ' ');
+
   return `<div class="card card-worker${flashCls}">
     <div class="card-row1">
-      <span class="card-id" title="${a.action_id}">${id}…</span>
+      <span class="badge ba">${app.toUpperCase()}</span>
       <span class="card-time">${fmt(a.timestamp)}</span>
-      <span class="badge ba">${app}</span>
     </div>
     <div class="card-row2">
-      <span class="card-type" style="color:var(--amber)">${a.action_type||'—'}</span>
+      <span class="card-type" style="color:var(--amber); text-transform:capitalize;">${actionFriendly}</span>
       <span class="card-arrow">→</span>
       <span class="card-target" title="${a.target_id}">${a.target_id||'—'}</span>
     </div>
-    ${sum?`<div class="card-summary">${sum}</div>`:''}
-    ${state?`<div class="card-meta">${state}</div>`:''}
+    ${sum?`<div class="card-summary" style="font-size:0.75rem; color:var(--text); margin-top:4px;">${sum}</div>`:''}
+    ${state?`<div class="card-meta" style="margin-top:6px;">${state}</div>`:''}
+    <div style="font-size:0.45rem; color:rgba(124,134,151,0.3); margin-top:4px; text-align:right;">Ref: ${id}</div>
   </div>`;
 }
 
@@ -801,27 +823,25 @@ function verdictCard(v, isNew) {
   const res = (v.result||'').toLowerCase();
   const cls = res==='pass'?'pass':'fail';
   const bc = cls==='pass'?'bp':'bf';
-  const cc = v.confidence==='high'?(cls==='fail'?'bf':'bp'):'bw';
   const id = (v.action_id||'').slice(0,10);
   const ms = v.latency_ms||0;
   const failFill = cls==='fail'?' fail':'';
   const diffs = (v.diffs||[]);
   const flashCls = isNew ? ' new-flash' : '';
+
   return `<div class="card card-verifier ${cls}${flashCls}">
     <div class="card-row1">
-      <span class="card-id" title="${v.action_id}">${id}…</span>
+      <span class="badge ${bc}">${res === 'pass' ? 'APPROVED' : 'ERROR CAUGHT'}</span>
       <span class="card-time">${fmt(v.verified_at)}</span>
-      <span class="badge ${bc}">${v.result}</span>
-      <span class="badge ${cc}">${v.confidence}</span>
     </div>
-    <div class="card-meta">
-      <span><span class="key">cat</span>${v.failure_category||'none'}</span>
-      <span><span class="key">retries</span>${v.settle_retries??0}</span>
-      <span><span class="key">lat</span>${fmtMs(ms)}</span>
-      <span><span class="key">target</span>${v.derived_correct_target||'—'}</span>
+    <div class="card-meta" style="margin-top:6px; flex-direction:column; gap:4px;">
+      ${cls==='fail' ? `<div><span class="key">Issue Type:</span> <span style="color:var(--coral); text-transform:capitalize;">${(v.failure_category||'Unknown').replace(/_/g,' ')}</span></div>` : ''}
+      <div><span class="key">Confidence Level:</span> <span style="text-transform:capitalize;">${v.confidence}</span></div>
+      <div><span class="key">Time Taken:</span> ${fmtMs(ms)}</div>
     </div>
     <div class="lat-bar"><div class="lat-fill${failFill}" style="width:${lat2pct(ms)}%"></div></div>
-    ${diffs.length?`<div class="card-diffs">${diffs.map(d=>`⚠ ${d}`).join('<br/>')}</div>`:''}
+    ${diffs.length?`<div class="card-diffs" style="margin-top:6px;"><b>What went wrong:</b><br/>${diffs.map(d=>`• ${d}`).join('<br/>')}</div>`:''}
+    <div style="font-size:0.45rem; color:rgba(124,134,151,0.3); margin-top:4px; text-align:right;">Ref: ${id}</div>
   </div>`;
 }
 
