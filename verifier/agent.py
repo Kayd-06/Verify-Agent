@@ -32,6 +32,9 @@ from verifier.rederive import rederive_target
 from verifier.settle_retry import settle_and_fetch
 from verifier.diff import structural_diff
 
+from remediation.revert import auto_revert, re_trigger_step
+from remediation.escalate import escalate_failure
+
 ACTION_LOG_FILE = "shared/action_log.jsonl"
 VERIFICATIONS_FILE = "shared/verifications.jsonl"
 
@@ -130,8 +133,15 @@ def _verify_notion_action(action: dict, email: dict) -> None:
     else:
         result, cat, conf = "PASS", "none", "high"
 
+    remediation = "none_needed"
+    if result == "FAIL":
+        if conf == "high" and cat in ["wrong_target", "stale_state"]:
+            remediation = auto_revert("notion", claimed_target)
+        else:
+            remediation = escalate_failure(action_id, cat, conf, retries, diffs)
+
     latency_ms = int((time.time() - t0) * 1000)
-    _emit_verdict(action_id, retries, actual, derived_target, result, cat, conf, diffs, latency_ms)
+    _emit_verdict(action_id, retries, actual, derived_target, result, cat, conf, diffs, latency_ms, remediation)
 
 
 def _verify_slack_action(action: dict) -> None:
@@ -148,8 +158,12 @@ def _verify_slack_action(action: dict) -> None:
     result = "PASS" if is_match else "FAIL"
     cat = "none" if is_match else "no_op_claimed"
 
+    remediation = "none_needed"
+    if result == "FAIL":
+        remediation = escalate_failure(action_id, cat, "high", 0, diffs)
+
     latency_ms = int((time.time() - t0) * 1000)
-    _emit_verdict(action_id, 0, messages, claimed_target, result, cat, "high", diffs, latency_ms)
+    _emit_verdict(action_id, 0, messages, claimed_target, result, cat, "high", diffs, latency_ms, remediation)
 
 
 def _verify_special(action: dict) -> None:
@@ -163,7 +177,8 @@ def _verify_special(action: dict) -> None:
         _emit_verdict(action_id, 0, None, "none", "PASS", "duplicate_skipped", "high", [], int((time.time() - t0) * 1000))
     elif action_type == "incomplete":
         # Worker flagged incompleteness — verifier confirms it
-        _emit_verdict(action_id, 0, None, "none", "FAIL", "incomplete_task", "high", ["Task marked incomplete by Worker"], int((time.time() - t0) * 1000))
+        remediation = re_trigger_step(action_id)
+        _emit_verdict(action_id, 0, None, "none", "FAIL", "incomplete_task", "high", ["Task marked incomplete by Worker"], int((time.time() - t0) * 1000), remediation)
 
 
 # ---------------------------------------------------------------------------
