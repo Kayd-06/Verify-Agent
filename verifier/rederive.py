@@ -4,14 +4,14 @@ The verifier reads the original source email and independently derives
 the correct Notion target ID, without ever looking at what the Worker claimed.
 Uses Gemini with rate-limit awareness.
 """
-import time
-from google import genai
+import json
+from groq import Groq
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = genai.Client()
+client = Groq()
 
 _last_call_time = 0.0
 _MIN_INTERVAL = 13.0  # 5 req/min free tier → 1 every 12s, use 13 for safety
@@ -23,11 +23,11 @@ class Derivation(BaseModel):
 
 
 def _rate_limit():
-    """Enforce minimum gap between Gemini API calls."""
+    """Groq rate limits are generous, minimal pacing needed."""
     global _last_call_time
     elapsed = time.time() - _last_call_time
-    if elapsed < _MIN_INTERVAL:
-        time.sleep(_MIN_INTERVAL - elapsed)
+    if elapsed < 2.0:
+        time.sleep(2.0 - elapsed)
     _last_call_time = time.time()
 
 
@@ -58,17 +58,15 @@ Rules:
 - If it's clearly a brand-new support request, return 'new_ticket'.
 - If there is no Notion target at all (e.g., Slack-only actions), return 'none'.
 
-Respond with the derived_target_id and a brief reasoning."""
+Respond with JSON ONLY containing keys 'derived_target_id' and 'reasoning'."""
 
     _rate_limit()
 
-    response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=prompt,
-        config=genai.types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=Derivation,
-        ),
+    response = client.chat.completions.create(
+        model="compound-beta",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
     )
-
-    return response.parsed.derived_target_id
+    
+    parsed_json = json.loads(response.choices[0].message.content)
+    return parsed_json.get("derived_target_id", "none")

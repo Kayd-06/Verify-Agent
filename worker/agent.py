@@ -3,7 +3,7 @@ import json
 import time
 from uuid import uuid4
 from datetime import datetime, timezone
-from google import genai
+from groq import Groq
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -16,7 +16,7 @@ from worker.gmail_client import get_unread_emails
 
 ACTION_LOG_FILE = "shared/action_log.jsonl"
 
-client = genai.Client()
+client = Groq()
 
 class Classification(BaseModel):
     category: str
@@ -67,18 +67,18 @@ def process_email(email):
     - summary (a short 1-sentence summary of the request)
     - action_type (create_ticket or update_ticket or incomplete). Use incomplete if the request is missing critical info to act upon.
     - target_id (If it's an update, guess the target ticket ID based on the text. If creating, generate a suitable ID like 'ticket_abc123' or 'user_jon_smith' based on the text. If none, use 'none'.)
+    
+    Output JSON ONLY with keys: category, priority, summary, action_type, target_id.
     """
     
-    response = client.models.generate_content(
-        model='gemini-3.6-flash',
-        contents=prompt,
-        config=genai.types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=Classification,
-        ),
+    response = client.chat.completions.create(
+        model='compound-beta',
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
     )
     
-    classification = response.parsed
+    classification_dict = json.loads(response.choices[0].message.content)
+    classification = Classification(**classification_dict)
     
     if classification.action_type == "incomplete":
          log_action(action_id, thread_id, content_hash, "incomplete", "none", "none", {"status": "skipped", "summary": "Incomplete task."})
@@ -145,8 +145,8 @@ def run_worker():
             process_email(email)
         except Exception as e:
             print(f"Error processing email: {e}")
-        # Sleep for 13 seconds to avoid exceeding the 5 requests/minute Gemini quota
-        time.sleep(13)
+        # Sleep slightly to avoid generic API limits, though Groq is more generous
+        time.sleep(2)
 
 if __name__ == "__main__":
     run_worker()
