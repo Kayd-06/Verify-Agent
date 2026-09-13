@@ -1,888 +1,985 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Verity — Live Dashboard</title>
-  <link rel="icon" type="image/jpeg" href="../landing/assets/favicon.jpg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Verity — Live Intelligence Dashboard</title>
+  <link rel="icon" type="image/jpeg" href="../landing/assets/favicon.jpg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --bg:    #0A0D12;
       --panel: #12161D;
+      --glass: rgba(18,22,29,0.75);
       --line:  #232933;
       --text:  #E8EAED;
       --muted: #7C8697;
       --cyan:  #5EEAD4;
       --coral: #FF6B57;
       --amber: #F5B942;
+      --cyan-glow:  rgba(94,234,212,0.15);
+      --coral-glow: rgba(255,107,87,0.15);
+      --amber-glow: rgba(245,185,66,0.15);
       --font-serif: 'Fraunces', Georgia, serif;
-      --font-mono:  'JetBrains Mono', 'Courier New', monospace;
+      --font-mono:  'JetBrains Mono', monospace;
     }
-
-    html, body { height: 100%; }
-
+    html,body { height:100%; overflow: hidden; }
     body {
       background: var(--bg);
       color: var(--text);
       font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.6;
+      font-size: 12px;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
     }
-
     :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 2px; }
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-thumb { background: rgba(94,234,212,0.2); border-radius: 2px; }
 
-    /* ──── HEADER ──── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-      height: 52px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-      flex-shrink: 0;
-      gap: 1rem;
+    /* ─── CANVAS BACKGROUND ─── */
+    #bg-canvas {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none;
     }
 
-    .hdr-left { display: flex; align-items: center; gap: 1.25rem; }
+    /* ─── ALL UI ABOVE CANVAS ─── */
+    #ui-root {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0 1.25rem; height: 50px;
+      background: rgba(10,13,18,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(94,234,212,0.12);
+      flex-shrink: 0;
+    }
 
     .logo {
-      font-family: var(--font-serif);
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-decoration: none;
-      color: var(--text);
+      font-family: var(--font-serif); font-size: 1.1rem;
+      font-weight: 700; letter-spacing: 0.1em;
+      text-decoration: none; color: var(--text);
     }
     .logo span { color: var(--cyan); }
 
+    .hdr-sep {
+      width: 1px; height: 20px; background: var(--line);
+    }
+
     .hdr-tag {
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
+      font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--muted);
-      border-left: 1px solid var(--line);
-      padding-left: 1rem;
     }
 
-    .hdr-center {
-      display: flex;
-      gap: 1px;
-      background: var(--line);
-      border: 1px solid var(--line);
-      border-radius: 3px;
-      overflow: hidden;
+    .hdr-spacer { flex: 1; }
+
+    /* live signal animation in header */
+    .signal-mini {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .signal-mini canvas {
+      width: 80px; height: 24px;
     }
 
-    .tab-btn {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      background: var(--panel);
-      border: none;
-      padding: 0.4rem 1rem;
-      cursor: pointer;
-      transition: color 0.15s, background 0.15s;
+    .live-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--cyan);
+      background: rgba(94,234,212,0.08);
+      border: 1px solid rgba(94,234,212,0.2);
+      padding: 0.25rem 0.6rem; border-radius: 20px;
     }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--cyan); background: rgba(94, 234, 212, 0.08); }
-
-    .hdr-right { display: flex; align-items: center; gap: 1rem; }
-
     .live-dot {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.65rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-    .live-dot::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
+      width: 5px; height: 5px; border-radius: 50%;
       background: var(--cyan);
       box-shadow: 0 0 6px var(--cyan);
-      animation: pulse 2s infinite;
+      animation: livePulse 1.8s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.3; }
+    @keyframes livePulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.3; transform:scale(0.7); }
     }
 
     .hdr-btn {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      background: transparent;
-      border: 1px solid var(--line);
-      padding: 0.35rem 0.8rem;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
-      text-decoration: none;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); background: transparent;
+      border: 1px solid var(--line); padding: 0.3rem 0.7rem;
+      border-radius: 3px; cursor: pointer; text-decoration: none;
+      transition: color 0.2s, border-color 0.2s;
     }
     .hdr-btn:hover { color: var(--text); border-color: var(--muted); }
 
-    /* ──── KPI STRIP ──── */
+    /* ─── KPI STRIP ─── */
     #kpi-strip {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 1px;
-      background: var(--line);
-      border-bottom: 1px solid var(--line);
+      display: grid; grid-template-columns: repeat(6,1fr);
+      gap: 1px; background: rgba(35,41,51,0.4);
+      border-bottom: 1px solid rgba(94,234,212,0.08);
       flex-shrink: 0;
     }
 
     .kpi {
-      background: var(--panel);
-      padding: 0.7rem 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
+      background: rgba(10,13,18,0.85);
+      backdrop-filter: blur(12px);
+      padding: 0.7rem 1rem;
+      display: flex; flex-direction: column; gap: 0.15rem;
+      position: relative; overflow: hidden;
+      transition: background 0.3s;
     }
+    .kpi::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 1px;
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.5s ease;
+    }
+    .kpi.updated::after { transform: scaleX(1); }
+    .kpi.kpi-cyan::after  { background: var(--cyan); }
+    .kpi.kpi-coral::after { background: var(--coral); }
+    .kpi.kpi-amber::after { background: var(--amber); }
 
     .kpi-val {
-      font-family: var(--font-serif);
-      font-size: 1.4rem;
-      font-weight: 700;
-      line-height: 1;
-      color: var(--text);
+      font-family: var(--font-serif); font-size: 1.5rem;
+      font-weight: 700; line-height: 1; color: var(--text);
+      transition: color 0.3s;
     }
-    .kpi-val.cyan  { color: var(--cyan); }
-    .kpi-val.coral { color: var(--coral); }
-    .kpi-val.amber { color: var(--amber); }
+    .kpi-val.c-cyan  { color: var(--cyan);  text-shadow: 0 0 20px rgba(94,234,212,0.4); }
+    .kpi-val.c-coral { color: var(--coral); text-shadow: 0 0 20px rgba(255,107,87,0.4); }
+    .kpi-val.c-amber { color: var(--amber); text-shadow: 0 0 20px rgba(245,185,66,0.4); }
 
     .kpi-label {
-      font-size: 0.6rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-size: 0.55rem; letter-spacing: 0.13em; text-transform: uppercase;
       color: var(--muted);
     }
 
-    /* ──── MAIN CONTENT ──── */
+    .kpi-spark {
+      position: absolute; bottom: 0; right: 0;
+      width: 60px; height: 24px; opacity: 0.35;
+    }
+
+    /* ─── MAIN GRID ─── */
     main {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-
-    /* ──── SPLIT VIEW ──── */
-    .split {
+      flex: 1; overflow: hidden;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      flex: 1;
-      overflow: hidden;
-      gap: 1px;
-      background: var(--line);
+      grid-template-columns: 1fr 1fr 260px;
+      grid-template-rows: 1fr 1fr;
+      gap: 1px; background: rgba(35,41,51,0.4);
+      padding: 1px;
     }
 
+    /* ─── PANE ─── */
     .pane {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--bg);
+      background: rgba(10,13,18,0.82);
+      backdrop-filter: blur(16px);
+      display: flex; flex-direction: column;
+      overflow: hidden; position: relative;
     }
 
-    .pane-header {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.6rem 1.25rem;
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
+    /* subtle gradient border top */
+    .pane::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      opacity: 0.5;
+    }
+    .pane.pane-worker::before { background: linear-gradient(to right, transparent, var(--amber), transparent); }
+    .pane.pane-verifier::before { background: linear-gradient(to right, transparent, var(--cyan), transparent); }
+    .pane.pane-notion::before { background: linear-gradient(to right, transparent, var(--amber), transparent); }
+    .pane.pane-slack::before { background: linear-gradient(to right, transparent, var(--cyan), transparent); }
+    .pane.pane-flow::before { background: linear-gradient(to right, transparent, var(--muted), transparent); }
+
+    /* spans */
+    .pane-worker   { grid-column: 1; grid-row: 1/3; }
+    .pane-verifier { grid-column: 2; grid-row: 1/3; }
+    .pane-flow     { grid-column: 3; grid-row: 1; }
+    .pane-slack    { grid-column: 3; grid-row: 2; }
+
+    .pane-head {
+      display: flex; align-items: center; gap: 6px;
+      padding: 0.5rem 0.85rem;
+      border-bottom: 1px solid rgba(35,41,51,0.6);
       flex-shrink: 0;
     }
 
-    .pane-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    .ph-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
     }
 
-    .pane-title {
-      font-size: 0.65rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      flex: 1;
+    .ph-title {
+      font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); flex: 1;
     }
 
-    .pane-count {
-      font-size: 0.65rem;
-      color: var(--muted);
-      background: rgba(35,41,51,0.6);
-      padding: 0.15rem 0.5rem;
-      border-radius: 10px;
+    .ph-count {
+      font-size: 0.58rem; color: rgba(124,134,151,0.6);
+      background: rgba(35,41,51,0.5); padding: 0.1rem 0.4rem;
+      border-radius: 8px;
     }
 
     .pane-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
+      flex: 1; overflow-y: auto; padding: 0.4rem;
+      display: flex; flex-direction: column; gap: 0.35rem;
     }
 
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
-
-    /* ──── ACTION CARD ──── */
-    .action-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      padding: 0.75rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      animation: slideIn 0.3s ease;
-      cursor: default;
+    /* ─── CARDS ─── */
+    .card {
+      border-radius: 5px; padding: 0.65rem 0.85rem;
+      border: 1px solid rgba(35,41,51,0.8);
+      display: flex; flex-direction: column; gap: 0.3rem;
+      animation: cardIn 0.35s cubic-bezier(0.2,0,0,1);
+      transition: border-color 0.2s;
+      position: relative; overflow: hidden;
     }
-    .action-card:hover { border-color: var(--muted); }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: none; }
+    .card::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 2px;
     }
 
-    .action-card-top {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
+    @keyframes cardIn {
+      from { opacity:0; transform: translateY(-10px) scale(0.98); }
+      to   { opacity:1; transform: none; }
+    }
+
+    .card:hover { border-color: rgba(124,134,151,0.3); }
+
+    /* worker card */
+    .card-worker { background: rgba(18,22,29,0.7); }
+    .card-worker::before { background: var(--amber); }
+    .card-worker.new-flash { animation: cardIn 0.35s, workerFlash 0.6s; }
+    @keyframes workerFlash {
+      0%,100% { background: rgba(18,22,29,0.7); }
+      30%     { background: rgba(245,185,66,0.08); }
+    }
+
+    /* verifier card */
+    .card-verifier.pass { background: rgba(18,22,29,0.7); }
+    .card-verifier.pass::before { background: var(--cyan); }
+    .card-verifier.fail { background: rgba(18,22,29,0.7); }
+    .card-verifier.fail::before { background: var(--coral); }
+    .card-verifier.pass.new-flash { animation: cardIn 0.35s, passFlash 0.7s; }
+    .card-verifier.fail.new-flash { animation: cardIn 0.35s, failFlash 0.7s; }
+    @keyframes passFlash {
+      0%,100% { background: rgba(18,22,29,0.7); }
+      30%     { background: rgba(94,234,212,0.07); }
+    }
+    @keyframes failFlash {
+      0%,100% { background: rgba(18,22,29,0.7); }
+      30%     { background: rgba(255,107,87,0.07); }
+    }
+
+    .card-row1 {
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .card-id { font-size: 0.6rem; color: var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .card-time { font-size: 0.55rem; color: rgba(124,134,151,0.4); white-space:nowrap; }
+
+    .card-row2 {
+      display: flex; align-items: center; gap: 5px; flex-wrap:wrap;
+    }
+
+    .card-type { font-size: 0.72rem; font-weight: 500; }
+    .card-arrow { color: rgba(124,134,151,0.4); font-size: 0.65rem; }
+    .card-target { font-size: 0.7rem; color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+
+    .card-summary {
+      font-size: 0.68rem; color: var(--muted); line-height: 1.5;
+      overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    }
+
+    .card-meta {
+      display: flex; gap: 8px; font-size: 0.6rem; color: rgba(124,134,151,0.5);
       flex-wrap: wrap;
     }
+    .card-meta .key { color: rgba(124,134,151,0.35); margin-right:2px; }
 
-    .action-id {
-      font-size: 0.65rem;
-      color: var(--muted);
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .action-time {
-      font-size: 0.62rem;
-      color: rgba(124,134,151,0.5);
-      white-space: nowrap;
-    }
-
-    .action-card-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .action-type {
-      font-size: 0.72rem;
-      font-weight: 500;
-      color: var(--amber);
-    }
-
-    .action-arrow { color: var(--muted); font-size: 0.65rem; }
-
-    .action-target {
-      font-size: 0.72rem;
-      color: var(--text);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
-    }
-
-    .action-summary {
-      font-size: 0.7rem;
-      color: var(--muted);
-      line-height: 1.5;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .action-hash {
-      font-size: 0.6rem;
-      color: rgba(124,134,151,0.4);
-    }
-
-    /* ──── VERDICT CARD ──── */
-    .verdict-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      padding: 0.75rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      animation: slideIn 0.3s ease;
-      cursor: default;
-    }
-    .verdict-card:hover { border-color: var(--muted); }
-
-    .verdict-card.pass { border-left: 2px solid var(--cyan); }
-    .verdict-card.fail { border-left: 2px solid var(--coral); }
-    .verdict-card.warn { border-left: 2px solid var(--amber); }
-
-    .verdict-top {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .verdict-id {
-      font-size: 0.65rem;
-      color: var(--muted);
-      flex: 1;
-    }
-
-    .verdict-meta {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .verdict-detail {
-      font-size: 0.68rem;
-      color: var(--muted);
-      display: flex;
-      gap: 1rem;
-    }
-
-    .verdict-detail span { white-space: nowrap; }
-    .verdict-detail .key { color: rgba(124,134,151,0.5); margin-right: 0.2rem; }
-
-    .verdict-diffs {
+    .card-diffs {
       background: rgba(255,107,87,0.06);
       border: 1px solid rgba(255,107,87,0.15);
-      border-radius: 3px;
-      padding: 0.4rem 0.6rem;
-      font-size: 0.65rem;
-      color: var(--coral);
-      line-height: 1.6;
+      border-radius: 3px; padding: 0.3rem 0.5rem;
+      font-size: 0.62rem; color: var(--coral); line-height:1.5;
     }
 
-    /* ──── BADGE ──── */
+    .lat-bar { height: 2px; background: rgba(35,41,51,0.8); border-radius:1px; margin-top:2px; overflow:hidden; }
+    .lat-fill { height:100%; border-radius:1px; background: var(--cyan); transition: width 0.8s ease; }
+    .lat-fill.fail { background: var(--coral); }
+
+    /* ─── BADGE ─── */
     .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.6rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 0.15rem 0.45rem;
-      border-radius: 2px;
-      font-weight: 500;
-      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.12rem 0.4rem; border-radius: 2px; font-weight: 500; white-space:nowrap;
     }
-    .badge::before { content: '●'; font-size: 0.45rem; }
-    .badge-pass  { color: var(--cyan);  background: rgba(94,234,212,0.08);  border: 1px solid rgba(94,234,212,0.2); }
-    .badge-fail  { color: var(--coral); background: rgba(255,107,87,0.08);  border: 1px solid rgba(255,107,87,0.2); }
-    .badge-warn  { color: var(--amber); background: rgba(245,185,66,0.08);  border: 1px solid rgba(245,185,66,0.2); }
-    .badge-high  { color: var(--coral); background: rgba(255,107,87,0.06);  border: 1px solid rgba(255,107,87,0.12); }
-    .badge-low   { color: var(--amber); background: rgba(245,185,66,0.06);  border: 1px solid rgba(245,185,66,0.12); }
+    .badge::before { content:'●'; font-size: 0.4rem; }
+    .bp { color:var(--cyan);  background:rgba(94,234,212,0.07);  border:1px solid rgba(94,234,212,0.18); }
+    .bf { color:var(--coral); background:rgba(255,107,87,0.07);  border:1px solid rgba(255,107,87,0.18); }
+    .bw { color:var(--amber); background:rgba(245,185,66,0.07);  border:1px solid rgba(245,185,66,0.18); }
+    .ba { color:var(--muted); background:rgba(124,134,151,0.07); border:1px solid rgba(124,134,151,0.18); }
 
-    /* ──── NOTION TAB ──── */
-    #tab-notion { display: none; }
-    #tab-slack  { display: none; }
-
-    .db-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      padding: 0.75rem;
-      overflow-y: auto;
-      flex: 1;
+    /* ─── FLOW PANE ─── */
+    .flow-canvas-wrap {
+      flex:1; position:relative; overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
     }
+    #flow-canvas { width:100%; height:100%; }
 
-    .db-row {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      padding: 0.75rem 1rem;
-      display: grid;
-      grid-template-columns: 1fr auto auto auto;
-      gap: 0.75rem;
-      align-items: center;
-      animation: slideIn 0.3s ease;
+    .flow-stats {
+      position: absolute; bottom: 0.5rem; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 1rem;
+      padding: 0 0.5rem;
     }
-
-    .db-row-title { font-size: 0.8rem; color: var(--text); }
-    .db-row-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .msg-row {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      padding: 0.75rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      animation: slideIn 0.3s ease;
+    .flow-stat {
+      font-size: 0.58rem; color: var(--muted);
+      display: flex; gap: 4px; align-items:center;
     }
+    .flow-stat strong { color: var(--text); }
 
-    .msg-id { font-size: 0.62rem; color: var(--muted); }
-    .msg-text { font-size: 0.78rem; color: var(--text); line-height: 1.5; }
-
-    /* ──── EMPTY STATE ──── */
-    .empty-state {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      padding: 2rem;
-      text-align: center;
+    /* ─── SLACK PANE msgs ─── */
+    .slack-msg {
+      background: rgba(18,22,29,0.5);
+      border: 1px solid rgba(35,41,51,0.6);
+      border-radius: 4px; padding: 0.5rem 0.7rem;
+      display: flex; flex-direction:column; gap:3px;
+      animation: cardIn 0.3s ease;
     }
+    .slack-msg::before { content:''; display:none; }
+    .slack-mid { font-size: 0.58rem; color: rgba(124,134,151,0.4); }
+    .slack-text { font-size: 0.7rem; color: var(--text); line-height:1.5; }
 
-    .empty-state-icon { font-size: 2rem; opacity: 0.3; }
-    .empty-state-title { font-size: 0.8rem; color: var(--muted); }
-    .empty-state-sub { font-size: 0.7rem; color: rgba(124,134,151,0.5); max-width: 240px; line-height: 1.6; }
-
-    /* ──── LATENCY BAR ──── */
-    .lat-bar-wrap {
-      height: 2px;
-      background: var(--line);
-      border-radius: 1px;
-      overflow: hidden;
-      margin-top: 0.25rem;
+    /* ─── EMPTY ─── */
+    .empty {
+      flex:1; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:8px; text-align:center; padding:1rem;
     }
-    .lat-bar {
-      height: 100%;
-      border-radius: 1px;
-      background: var(--cyan);
-      transition: width 0.5s ease;
-    }
+    .empty-icon { font-size:1.6rem; opacity:0.25; }
+    .empty-title { font-size:0.7rem; color:var(--muted); }
+    .empty-sub { font-size:0.62rem; color:rgba(124,134,151,0.4); max-width:180px; line-height:1.6; }
 
-    /* ──── STATUS BAR ──── */
-    #status-bar {
-      height: 24px;
-      background: var(--panel);
-      border-top: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      padding: 0 1rem;
-      gap: 1.5rem;
-      flex-shrink: 0;
-    }
-
-    .sb-item {
-      font-size: 0.6rem;
-      letter-spacing: 0.1em;
+    /* ─── STATUS BAR ─── */
+    #statusbar {
+      height: 22px; background: rgba(10,13,18,0.92);
+      border-top: 1px solid rgba(35,41,51,0.6);
+      display: flex; align-items: center; padding: 0 1rem;
+      gap: 1.5rem; flex-shrink: 0;
+      font-size: 0.58rem; letter-spacing: 0.08em;
       color: var(--muted);
-      text-transform: uppercase;
     }
-    .sb-item span { color: var(--text); margin-left: 0.3rem; }
+    #statusbar span { color: var(--text); }
+    .sb-sep { width:1px; height:10px; background:var(--line); }
+    .sb-right { margin-left: auto; display:flex; gap:1rem; }
+    #sb-api-status { color: var(--cyan); }
 
-    /* ──── RESPONSIVE ──── */
-    @media (max-width: 900px) {
-      .split { grid-template-columns: 1fr; }
-      #kpi-strip { grid-template-columns: repeat(3, 1fr); }
-      .hdr-center { display: none; }
+    /* ─── NOTION TICKET (inside flow pane as mini list) ─── */
+    .notion-mini {
+      padding: 0.35rem 0.5rem;
+      background: rgba(18,22,29,0.7);
+      border: 1px solid rgba(35,41,51,0.8);
+      border-radius: 3px;
+      display: flex; align-items:center; gap:6px;
+      animation: cardIn 0.3s ease;
+      font-size:0.62rem;
     }
+    .notion-mini::before { display:none; }
+    .notion-id { color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
 
-    @media (max-width: 600px) {
-      #kpi-strip { grid-template-columns: repeat(2, 1fr); }
-      header { padding: 0 0.75rem; }
-      .hdr-tag { display: none; }
+    /* responsive */
+    @media (max-width:1000px) {
+      main { grid-template-columns: 1fr 1fr; grid-template-rows:1fr 1fr; }
+      .pane-flow { grid-column:1; grid-row:2; }
+      .pane-slack { grid-column:2; grid-row:2; }
+      .pane-worker { grid-column:1; grid-row:1; }
+      .pane-verifier { grid-column:2; grid-row:1; }
+      #kpi-strip { grid-template-columns: repeat(3,1fr); }
     }
   </style>
 </head>
 <body>
 
-  <!-- ════════════════════ HEADER ════════════════════ -->
-  <header>
-    <div class="hdr-left">
-      <a href="../landing/" class="logo">VER<span>I</span>TY</a>
-      <span class="hdr-tag">Live Dashboard</span>
-    </div>
+<!-- THREE.JS BACKGROUND -->
+<canvas id="bg-canvas"></canvas>
 
-    <div class="hdr-center">
-      <button class="tab-btn active" onclick="showTab('split')" id="btn-split">Split</button>
-      <button class="tab-btn" onclick="showTab('notion')" id="btn-notion">Notion DB</button>
-      <button class="tab-btn" onclick="showTab('slack')" id="btn-slack">Slack Feed</button>
-    </div>
+<div id="ui-root">
 
-    <div class="hdr-right">
-      <span class="live-dot" id="live-indicator">live</span>
-      <button class="hdr-btn" onclick="refresh()" aria-label="Refresh data">↻ Refresh</button>
-      <a href="../landing/" class="hdr-btn">← Landing</a>
-    </div>
-  </header>
+<!-- ═══ HEADER ═══ -->
+<header>
+  <a href="../landing/" class="logo">VER<span>I</span>TY</a>
+  <div class="hdr-sep"></div>
+  <span class="hdr-tag">Intelligence Dashboard</span>
+  <div class="hdr-spacer"></div>
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    live · polling 4s
+  </div>
+  <button class="hdr-btn" onclick="refresh()" style="margin-left:0.5rem">↻ Refresh</button>
+  <a href="../landing/" class="hdr-btn">← Landing</a>
+</header>
 
-  <!-- ════════════════════ KPI STRIP ════════════════════ -->
-  <div id="kpi-strip" role="region" aria-label="Key metrics">
-    <div class="kpi">
-      <span class="kpi-val cyan" id="kpi-total">—</span>
-      <span class="kpi-label">Total Actions</span>
+<!-- ═══ KPI STRIP ═══ -->
+<div id="kpi-strip" role="region" aria-label="Key metrics">
+  <div class="kpi kpi-cyan">
+    <svg class="kpi-spark" id="spark-0" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
+    <span class="kpi-val c-cyan" id="kv-total">—</span>
+    <span class="kpi-label">Total Actions</span>
+  </div>
+  <div class="kpi kpi-cyan">
+    <svg class="kpi-spark" id="spark-1" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
+    <span class="kpi-val c-cyan" id="kv-pass">—</span>
+    <span class="kpi-label">Verified Pass</span>
+  </div>
+  <div class="kpi kpi-coral">
+    <svg class="kpi-spark" id="spark-2" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
+    <span class="kpi-val c-coral" id="kv-fail">—</span>
+    <span class="kpi-label">Caught Fail</span>
+  </div>
+  <div class="kpi kpi-amber">
+    <svg class="kpi-spark" id="spark-3" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
+    <span class="kpi-val c-amber" id="kv-pending">—</span>
+    <span class="kpi-label">Pending Verify</span>
+  </div>
+  <div class="kpi kpi-cyan">
+    <svg class="kpi-spark" id="spark-4" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
+    <span class="kpi-val" id="kv-lat">—</span>
+    <span class="kpi-label">Avg Latency</span>
+  </div>
+  <div class="kpi kpi-cyan">
+    <svg class="kpi-spark" id="spark-5" viewBox="0 0 60 24" preserveAspectRatio="none"></svg>
+    <span class="kpi-val c-cyan" id="kv-rate">—</span>
+    <span class="kpi-label">Pass Rate</span>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<main>
+
+  <!-- Worker Pane -->
+  <div class="pane pane-worker">
+    <div class="pane-head">
+      <span class="ph-dot" style="background:var(--amber)"></span>
+      <span class="ph-title">W1 · action_log.jsonl — Worker Agent</span>
+      <span class="ph-count" id="pc-actions">0</span>
     </div>
-    <div class="kpi">
-      <span class="kpi-val cyan" id="kpi-pass">—</span>
-      <span class="kpi-label">Verified PASS</span>
+    <div class="pane-body" id="action-list"></div>
+  </div>
+
+  <!-- Verifier Pane -->
+  <div class="pane pane-verifier">
+    <div class="pane-head">
+      <span class="ph-dot" style="background:var(--cyan)"></span>
+      <span class="ph-title">V2 · verifications.jsonl — Verifier Agent</span>
+      <span class="ph-count" id="pc-verdicts">0</span>
     </div>
-    <div class="kpi">
-      <span class="kpi-val coral" id="kpi-fail">—</span>
-      <span class="kpi-label">Caught FAIL</span>
+    <div class="pane-body" id="verdict-list"></div>
+  </div>
+
+  <!-- Flow / Signal Pane -->
+  <div class="pane pane-flow">
+    <div class="pane-head">
+      <span class="ph-dot" style="background:var(--muted)"></span>
+      <span class="ph-title">Signal Flow</span>
     </div>
-    <div class="kpi">
-      <span class="kpi-val amber" id="kpi-pending">—</span>
-      <span class="kpi-label">Pending Verify</span>
+    <div class="flow-canvas-wrap">
+      <canvas id="flow-canvas"></canvas>
+      <div class="flow-stats">
+        <div class="flow-stat">W→V: <strong id="fs-pending">—</strong></div>
+        <div class="flow-stat">retries: <strong id="fs-retries">—</strong></div>
+      </div>
     </div>
-    <div class="kpi">
-      <span class="kpi-val" id="kpi-avg-lat">—</span>
-      <span class="kpi-label">Avg Verify Latency</span>
-    </div>
-    <div class="kpi">
-      <span class="kpi-val cyan" id="kpi-retries">—</span>
-      <span class="kpi-label">Total Retries Used</span>
+    <!-- Notion mini tickets -->
+    <div style="padding:0.4rem;border-top:1px solid rgba(35,41,51,0.5)">
+      <div style="font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem;padding-left:0.1rem">Notion DB</div>
+      <div id="notion-mini-list" style="display:flex;flex-direction:column;gap:0.2rem;max-height:100px;overflow-y:auto"></div>
     </div>
   </div>
 
-  <!-- ════════════════════ MAIN ════════════════════ -->
-  <main>
-
-    <!-- ── SPLIT TAB (default) ── -->
-    <div class="split" id="tab-split">
-
-      <!-- Worker Pane -->
-      <div class="pane">
-        <div class="pane-header">
-          <span class="pane-dot" style="background:var(--amber)"></span>
-          <span class="pane-title">W1 · action_log.jsonl</span>
-          <span class="pane-count" id="action-count">0 actions</span>
-        </div>
-        <div class="pane-body" id="action-list">
-          <div class="empty-state">
-            <div class="empty-state-icon">📭</div>
-            <div class="empty-state-title">No actions yet</div>
-            <div class="empty-state-sub">Run the worker agent to start processing emails and writing actions here.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Verifier Pane -->
-      <div class="pane">
-        <div class="pane-header">
-          <span class="pane-dot" style="background:var(--cyan)"></span>
-          <span class="pane-title">V2 · verifications.jsonl</span>
-          <span class="pane-count" id="verdict-count">0 verdicts</span>
-        </div>
-        <div class="pane-body" id="verdict-list">
-          <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No verifications yet</div>
-            <div class="empty-state-sub">Run the verifier agent to start auditing worker actions here.</div>
-          </div>
-        </div>
-      </div>
-
+  <!-- Slack Pane -->
+  <div class="pane pane-slack">
+    <div class="pane-head">
+      <span class="ph-dot" style="background:var(--cyan)"></span>
+      <span class="ph-title">#verity-status · Slack</span>
+      <span class="ph-count" id="pc-slack">0</span>
     </div>
-
-    <!-- ── NOTION DB TAB ── -->
-    <div class="pane" id="tab-notion" style="flex:1">
-      <div class="pane-header">
-        <span class="pane-dot" style="background:var(--amber)"></span>
-        <span class="pane-title">Notion DB — ticket store</span>
-        <span class="pane-count" id="notion-count">0 tickets</span>
-      </div>
-      <div class="db-grid" id="notion-list">
-        <div class="empty-state">
-          <div class="empty-state-icon">📋</div>
-          <div class="empty-state-title">No Notion tickets yet</div>
-          <div class="empty-state-sub">Run the worker to populate the Notion mock DB.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SLACK TAB ── -->
-    <div class="pane" id="tab-slack" style="flex:1">
-      <div class="pane-header">
-        <span class="pane-dot" style="background:var(--cyan)"></span>
-        <span class="pane-title">Slack — #verity-status feed</span>
-        <span class="pane-count" id="slack-count">0 messages</span>
-      </div>
-      <div class="db-grid" id="slack-list">
-        <div class="empty-state">
-          <div class="empty-state-icon">💬</div>
-          <div class="empty-state-title">No Slack messages yet</div>
-          <div class="empty-state-sub">Run the worker to populate the Slack mock feed.</div>
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- ════════════════════ STATUS BAR ════════════════════ -->
-  <div id="status-bar" role="status" aria-live="polite">
-    <span class="sb-item">Last refresh: <span id="sb-time">—</span></span>
-    <span class="sb-item">Actions: <span id="sb-actions">0</span></span>
-    <span class="sb-item">Verdicts: <span id="sb-verdicts">0</span></span>
-    <span class="sb-item">Pass rate: <span id="sb-passrate">—</span></span>
-    <span class="sb-item" style="margin-left:auto">API: <span id="sb-api" style="color:var(--cyan)">connected</span></span>
+    <div class="pane-body" id="slack-list"></div>
   </div>
 
-  <script>
-  (() => {
-    /* ─── State ─── */
-    let actions = [];
-    let verdicts = [];
-    let notionDb = {};
-    let slackDb = [];
-    let currentTab = 'split';
+</main>
 
-    /* ─── Tab switching ─── */
-    window.showTab = (tab) => {
-      currentTab = tab;
-      ['split', 'notion', 'slack'].forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
-        const btn = document.getElementById(`btn-${t}`);
-        el.style.display = 'none';
-        btn?.classList.remove('active');
-      });
-      const active = document.getElementById(`tab-${tab}`);
-      active.style.display = tab === 'split' ? 'grid' : 'flex';
-      document.getElementById(`btn-${tab}`)?.classList.add('active');
-    };
+<!-- ═══ STATUS BAR ═══ -->
+<div id="statusbar">
+  <span>Last poll: <span id="sb-time">—</span></span>
+  <div class="sb-sep"></div>
+  <span>Actions: <span id="sb-a">0</span></span>
+  <span>Verdicts: <span id="sb-v">0</span></span>
+  <span>Pass rate: <span id="sb-pr">—</span></span>
+  <div class="sb-right">
+    <span>API: <span id="sb-api-status">connecting…</span></span>
+    <span>interval: 4s</span>
+  </div>
+</div>
 
-    /* ─── Fetch helpers ─── */
-    async function fetchJSON(url) {
-      try {
-        const r = await fetch(url);
-        if (!r.ok) throw new Error(r.status);
-        return r.json();
-      } catch {
-        return null;
-      }
-    }
+</div><!-- /ui-root -->
 
-    /* ─── Formatting helpers ─── */
-    function fmtTime(iso) {
-      if (!iso) return '—';
-      try {
-        const d = new Date(iso);
-        return d.toLocaleTimeString('en-GB', { hour12: false });
-      } catch { return iso; }
-    }
+<script>
+(function(){
 
-    function fmtMs(ms) {
-      if (ms === undefined || ms === null) return '—';
-      if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`;
-      return `${ms}ms`;
-    }
+/* ════════════════ THREE.JS BACKGROUND ════════════════ */
+const bgCanvas = document.getElementById('bg-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, antialias: true, alpha: true });
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);
+camera.position.set(0, 0, 6);
 
-    function latBarWidth(ms) {
-      // max reference: 15s = 100%
-      return Math.min((ms / 15000) * 100, 100);
-    }
+function resizeBg() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resizeBg();
+window.addEventListener('resize', resizeBg);
 
-    /* ─── Action card ─── */
-    function actionCard(a) {
-      const app = a.target_app || 'unknown';
-      const appColor = app === 'notion' ? 'var(--amber)' : 'var(--cyan)';
-      const shortId = (a.action_id || '').slice(0, 10);
-      const shortHash = (a.content_hash || '').replace('sha1:', '').slice(0, 12);
-      const summary = a.claimed_result?.summary || a.claimed_state?.summary || '—';
+// Particles
+const pCount = 350;
+const pPos = new Float32Array(pCount * 3);
+for(let i=0;i<pCount;i++){
+  pPos[i*3]   = (Math.random()-0.5)*22;
+  pPos[i*3+1] = (Math.random()-0.5)*12;
+  pPos[i*3+2] = (Math.random()-0.5)*6;
+}
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
+const pMat = new THREE.PointsMaterial({ color:0x1a2030, size:0.04 });
+const particles = new THREE.Points(pGeo, pMat);
+scene.add(particles);
 
-      const stateFields = a.claimed_state
-        ? Object.entries(a.claimed_state)
-            .filter(([k]) => k !== 'summary')
-            .map(([k, v]) => `<span style="color:rgba(124,134,151,0.5)">${k}:</span> ${v}`)
-            .join('  ·  ')
-        : '';
+// Signal tubes
+function makeSig(offset) {
+  const pts = [];
+  for(let i=0;i<=80;i++) {
+    const t = i/80;
+    pts.push(new THREE.Vector3((t-0.5)*20, offset, 0));
+  }
+  return new THREE.CatmullRomCurve3(pts);
+}
+const sig1 = new THREE.Mesh(
+  new THREE.TubeGeometry(makeSig(0.5), 80, 0.008, 6, false),
+  new THREE.MeshBasicMaterial({ color:0x1e3a35, transparent:true, opacity:0.6 })
+);
+const sig2 = new THREE.Mesh(
+  new THREE.TubeGeometry(makeSig(-0.5), 80, 0.008, 6, false),
+  new THREE.MeshBasicMaterial({ color:0x1e3a35, transparent:true, opacity:0.6 })
+);
+scene.add(sig1, sig2);
 
-      return `<div class="action-card">
-        <div class="action-card-top">
-          <span class="action-id" title="${a.action_id}">${shortId}…</span>
-          <span class="action-time">${fmtTime(a.timestamp)}</span>
-          <span class="badge" style="color:${appColor};background:rgba(94,234,212,0.06);border:1px solid rgba(94,234,212,0.12)">${app}</span>
-        </div>
-        <div class="action-card-row">
-          <span class="action-type">${a.action_type || '—'}</span>
-          <span class="action-arrow">→</span>
-          <span class="action-target" title="${a.target_id}">${a.target_id || '—'}</span>
-        </div>
-        ${summary ? `<div class="action-summary">${summary}</div>` : ''}
-        ${stateFields ? `<div style="font-size:0.65rem;color:var(--muted)">${stateFields}</div>` : ''}
-        ${shortHash ? `<div class="action-hash">sha1: ${shortHash}…</div>` : ''}
-      </div>`;
-    }
+let bgT = 0;
+function animateBg() {
+  requestAnimationFrame(animateBg);
+  bgT += 0.003;
+  particles.rotation.y = bgT * 0.15;
+  particles.rotation.x = Math.sin(bgT * 0.1) * 0.05;
+  renderer.render(scene, camera);
+}
+animateBg();
 
-    /* ─── Verdict card ─── */
-    function verdictCard(v) {
-      const result = (v.result || 'UNKNOWN').toLowerCase();
-      const cls = result === 'pass' ? 'pass' : result === 'fail' ? 'fail' : 'warn';
-      const badgeCls = `badge-${cls}`;
-      const confCls = v.confidence === 'high' ? (result === 'fail' ? 'badge-high' : 'badge-pass') : 'badge-low';
-      const shortId = (v.action_id || '').slice(0, 10);
-      const diffs = v.diffs || [];
-      const cat = v.failure_category || 'none';
-      const latMs = v.latency_ms || 0;
-      const w = latBarWidth(latMs);
+/* ════════════════ FLOW CANVAS ════════════════ */
+const flowCanvas = document.getElementById('flow-canvas');
+const ctx = flowCanvas.getContext('2d');
+let flowT = 0;
+let flowActions = 0, flowVerdicts = 0, flowFail = 0;
 
-      return `<div class="verdict-card ${cls}">
-        <div class="verdict-top">
-          <span class="verdict-id" title="${v.action_id}">${shortId}…</span>
-          <span class="action-time">${fmtTime(v.verified_at)}</span>
-          <span class="badge ${badgeCls}">${v.result || '?'}</span>
-          <span class="badge ${confCls}">${v.confidence || '?'}</span>
-        </div>
-        <div class="verdict-detail">
-          <span><span class="key">cat</span>${cat}</span>
-          <span><span class="key">retries</span>${v.settle_retries ?? '—'}</span>
-          <span><span class="key">lat</span>${fmtMs(latMs)}</span>
-          <span><span class="key">target</span>${v.derived_correct_target || '—'}</span>
-        </div>
-        <div class="lat-bar-wrap"><div class="lat-bar" style="width:${w}%"></div></div>
-        ${diffs.length ? `<div class="verdict-diffs">${diffs.map(d => `⚠ ${d}`).join('<br/>')}</div>` : ''}
-      </div>`;
-    }
+function resizeFlow() {
+  const r = flowCanvas.parentElement.getBoundingClientRect();
+  flowCanvas.width = r.width;
+  flowCanvas.height = r.height - 60;
+}
 
-    /* ─── Notion DB row ─── */
-    function notionRow(id, ticket) {
-      const statusColor = ticket.status === 'open' ? 'var(--amber)' : ticket.status === 'closed' ? 'var(--muted)' : 'var(--cyan)';
-      const prioColor = ticket.priority === 'high' ? 'var(--coral)' : ticket.priority === 'medium' ? 'var(--amber)' : 'var(--muted)';
-      return `<div class="db-row">
-        <div>
-          <div class="db-row-title">${id}</div>
-          <div class="db-row-sub">${ticket.summary || '—'}</div>
-        </div>
-        <span class="badge" style="color:${statusColor};background:transparent;border:1px solid ${statusColor}22">${ticket.status || '?'}</span>
-        <span class="badge badge-warn">${ticket.category || '?'}</span>
-        <span class="badge" style="color:${prioColor};background:transparent;border:1px solid ${prioColor}22">${ticket.priority || '?'}</span>
-      </div>`;
-    }
+function drawFlow() {
+  const w = flowCanvas.width, h = flowCanvas.height;
+  ctx.clearRect(0, 0, w, h);
 
-    /* ─── Slack message row ─── */
-    function slackRow(msg) {
-      return `<div class="msg-row">
-        <span class="msg-id">${msg.id || '—'}</span>
-        <span class="msg-text">${msg.text || '—'}</span>
-      </div>`;
-    }
+  const cx = w / 2, cy = h / 2;
+  const r = Math.min(w, h) * 0.3;
 
-    /* ─── Compute KPIs ─── */
-    function updateKPIs() {
-      const total = actions.length;
-      const verifiedIds = new Set(verdicts.map(v => v.action_id));
-      const pass = verdicts.filter(v => v.result === 'PASS').length;
-      const fail = verdicts.filter(v => v.result === 'FAIL').length;
-      const pending = total - verifiedIds.size;
-      const avgLat = verdicts.length
-        ? Math.round(verdicts.reduce((s, v) => s + (v.latency_ms || 0), 0) / verdicts.length)
-        : null;
-      const totalRetries = verdicts.reduce((s, v) => s + (v.settle_retries || 0), 0);
-      const passRate = verdicts.length ? Math.round((pass / verdicts.length) * 100) : null;
+  // Outer glow ring
+  const grad = ctx.createRadialGradient(cx, cy, r*0.6, cx, cy, r*1.2);
+  grad.addColorStop(0, 'rgba(94,234,212,0.04)');
+  grad.addColorStop(1, 'rgba(94,234,212,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r*1.2, 0, Math.PI*2);
+  ctx.fill();
 
-      document.getElementById('kpi-total').textContent = total || '—';
-      document.getElementById('kpi-pass').textContent = pass || '—';
-      document.getElementById('kpi-fail').textContent = fail || (fail === 0 && verdicts.length ? '0' : '—');
-      document.getElementById('kpi-pending').textContent = pending > 0 ? pending : (total > 0 ? '0' : '—');
-      document.getElementById('kpi-avg-lat').textContent = avgLat !== null ? fmtMs(avgLat) : '—';
-      document.getElementById('kpi-retries').textContent = totalRetries || (verdicts.length ? '0' : '—');
+  // Worker node
+  const wx = cx - r * 0.85, wy = cy;
+  // Verifier node
+  const vx = cx + r * 0.85, vy = cy;
 
-      // status bar
-      document.getElementById('sb-actions').textContent = total;
-      document.getElementById('sb-verdicts').textContent = verdicts.length;
-      document.getElementById('sb-passrate').textContent = passRate !== null ? `${passRate}%` : '—';
-      document.getElementById('sb-time').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
-    }
+  // Animated signal particle
+  const speed = 0.008;
+  const pt = (flowT * speed) % 1;
+  const px = wx + (vx - wx) * pt;
+  const py = wy;
 
-    /* ─── Render panes ─── */
-    function render() {
-      // Actions
-      const al = document.getElementById('action-list');
-      document.getElementById('action-count').textContent = `${actions.length} action${actions.length !== 1 ? 's' : ''}`;
-      if (actions.length) {
-        al.innerHTML = [...actions].reverse().map(actionCard).join('');
-      } else {
-        al.innerHTML = `<div class="empty-state">
-          <div class="empty-state-icon">📭</div>
-          <div class="empty-state-title">No actions yet</div>
-          <div class="empty-state-sub">Run the worker agent: <code>python -m worker.agent</code></div>
-        </div>`;
-      }
+  // Connection line
+  ctx.strokeStyle = 'rgba(94,234,212,0.1)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.moveTo(wx, wy);
+  ctx.lineTo(vx, vy);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
-      // Verdicts
-      const vl = document.getElementById('verdict-list');
-      document.getElementById('verdict-count').textContent = `${verdicts.length} verdict${verdicts.length !== 1 ? 's' : ''}`;
-      if (verdicts.length) {
-        vl.innerHTML = [...verdicts].reverse().map(verdictCard).join('');
-      } else {
-        vl.innerHTML = `<div class="empty-state">
-          <div class="empty-state-icon">🔍</div>
-          <div class="empty-state-title">No verifications yet</div>
-          <div class="empty-state-sub">Run the verifier: <code>python -m verifier.agent</code></div>
-        </div>`;
-      }
+  // Second line (below) for fail
+  if(flowFail > 0) {
+    const pt2 = ((flowT * speed) + 0.4) % 1;
+    const px2 = wx + (vx - wx) * pt2;
+    ctx.strokeStyle = 'rgba(255,107,87,0.08)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath();
+    ctx.moveTo(wx, wy+10);
+    ctx.lineTo(vx, vy+10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // fail particle
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(255,107,87,0.8)';
+    ctx.fillStyle = '#FF6B57';
+    ctx.beginPath();
+    ctx.arc(px2, py+10, 2.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
 
-      // Notion DB
-      const nl = document.getElementById('notion-list');
-      const notionEntries = Object.entries(notionDb);
-      document.getElementById('notion-count').textContent = `${notionEntries.length} ticket${notionEntries.length !== 1 ? 's' : ''}`;
-      nl.innerHTML = notionEntries.length
-        ? notionEntries.map(([id, t]) => notionRow(id, t)).join('')
-        : `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tickets yet</div></div>`;
+  // Signal particle
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = 'rgba(94,234,212,0.9)';
+  ctx.fillStyle = '#5EEAD4';
+  ctx.beginPath();
+  ctx.arc(px, py, 3, 0, Math.PI*2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
 
-      // Slack
-      const sl = document.getElementById('slack-list');
-      const msgs = Array.isArray(slackDb) ? slackDb : (slackDb['#verity-status'] || []);
-      document.getElementById('slack-count').textContent = `${msgs.length} message${msgs.length !== 1 ? 's' : ''}`;
-      sl.innerHTML = msgs.length
-        ? [...msgs].reverse().map(slackRow).join('')
-        : `<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-title">No messages yet</div></div>`;
+  // Worker circle
+  drawNode(ctx, wx, wy, r*0.22, '#F5B942', 'W1', 'WORKER');
+  // Verifier circle
+  drawNode(ctx, vx, vy, r*0.22, '#5EEAD4', 'V2', 'VERIFIER');
 
-      updateKPIs();
-    }
+  // Stats text
+  ctx.fillStyle = 'rgba(124,134,151,0.5)';
+  ctx.font = `500 9px JetBrains Mono, monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText(`${flowActions} actions → ${flowVerdicts} verified`, cx, h - 8);
 
-    /* ─── Main refresh ─── */
-    window.refresh = async () => {
-      const indicator = document.getElementById('live-indicator');
-      const apiStatus = document.getElementById('sb-api');
+  flowT++;
+}
 
-      const [a, v, n, s] = await Promise.all([
-        fetchJSON('/api/actions'),
-        fetchJSON('/api/verifications'),
-        fetchJSON('/api/notion_db'),
-        fetchJSON('/api/slack_db'),
-      ]);
+function drawNode(ctx, x, y, r, color, label, sublabel) {
+  // Glow
+  const g = ctx.createRadialGradient(x,y,0,x,y,r*1.5);
+  g.addColorStop(0, color+'22');
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(x, y, r*1.5, 0, Math.PI*2);
+  ctx.fill();
 
-      if (a !== null) {
-        actions = a;
-        verdicts = v || [];
-        notionDb = n || {};
-        slackDb = s || [];
-        apiStatus.style.color = 'var(--cyan)';
-        apiStatus.textContent = 'connected';
-      } else {
-        apiStatus.style.color = 'var(--coral)';
-        apiStatus.textContent = 'offline — serving static';
-      }
+  // Circle
+  ctx.strokeStyle = color+'44';
+  ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(10,13,18,0.9)';
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
 
-      render();
-    };
+  // Inner circle
+  ctx.strokeStyle = color+'80';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.arc(x, y, r*0.7, 0, Math.PI*2);
+  ctx.stroke();
 
-    /* ─── Auto-poll every 4s ─── */
-    refresh();
-    setInterval(refresh, 4000);
-  })();
-  </script>
+  // Label
+  ctx.fillStyle = color;
+  ctx.font = `700 11px Fraunces, serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText(label, x, y+4);
+
+  ctx.fillStyle = 'rgba(124,134,151,0.7)';
+  ctx.font = `400 7px JetBrains Mono, monospace`;
+  ctx.fillText(sublabel, x, y+r+14);
+}
+
+function animateFlow() {
+  requestAnimationFrame(animateFlow);
+  drawFlow();
+}
+
+function initFlow() {
+  resizeFlow();
+  animateFlow();
+}
+
+window.addEventListener('resize', () => { resizeFlow(); });
+
+/* ════════════════ SPARKLINE ════════════════ */
+const sparkHistory = [[], [], [], [], [], []];
+
+function addSpark(idx, val) {
+  const h = sparkHistory[idx];
+  h.push(val);
+  if(h.length > 20) h.shift();
+  drawSpark(idx);
+}
+
+function drawSpark(idx) {
+  const svg = document.getElementById(`spark-${idx}`);
+  if(!svg) return;
+  const h = sparkHistory[idx];
+  if(h.length < 2) return;
+  const max = Math.max(...h, 1);
+  const pts = h.map((v, i) => {
+    const x = (i / (h.length-1)) * 60;
+    const y = 24 - (v/max)*20;
+    return `${x},${y}`;
+  }).join(' ');
+  const colors = ['#5EEAD4','#5EEAD4','#FF6B57','#F5B942','#5EEAD4','#5EEAD4'];
+  svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="${colors[idx]}" stroke-width="1" opacity="0.6"/>`;
+}
+
+/* ════════════════ DATA & RENDER ════════════════ */
+let actions=[], verdicts=[], notionDb={}, slackDb=[];
+let prevActionIds = new Set(), prevVerdictIds = new Set();
+
+function fmt(iso) {
+  if(!iso) return '—';
+  try { return new Date(iso).toLocaleTimeString('en-GB',{hour12:false}); } catch{return iso;}
+}
+function fmtMs(ms) {
+  if(ms===undefined||ms===null) return '—';
+  return ms>=1000 ? `${(ms/1000).toFixed(1)}s` : `${ms}ms`;
+}
+function lat2pct(ms) { return Math.min((ms||0)/15000*100,100); }
+
+function actionCard(a, isNew) {
+  const app = a.target_app||'none';
+  const appC = app==='notion'?'var(--amber)':'var(--cyan)';
+  const id = (a.action_id||'').slice(0,10);
+  const sum = a.claimed_state?.summary || a.claimed_result?.summary || '';
+  const state = a.claimed_state ? Object.entries(a.claimed_state)
+    .filter(([k])=>k!=='summary')
+    .map(([k,v])=>`<span class="key">${k}</span>${v}`)
+    .join(' · ') : '';
+  const flashCls = isNew ? ' new-flash' : '';
+  return `<div class="card card-worker${flashCls}">
+    <div class="card-row1">
+      <span class="card-id" title="${a.action_id}">${id}…</span>
+      <span class="card-time">${fmt(a.timestamp)}</span>
+      <span class="badge ba">${app}</span>
+    </div>
+    <div class="card-row2">
+      <span class="card-type" style="color:var(--amber)">${a.action_type||'—'}</span>
+      <span class="card-arrow">→</span>
+      <span class="card-target" title="${a.target_id}">${a.target_id||'—'}</span>
+    </div>
+    ${sum?`<div class="card-summary">${sum}</div>`:''}
+    ${state?`<div class="card-meta">${state}</div>`:''}
+  </div>`;
+}
+
+function verdictCard(v, isNew) {
+  const res = (v.result||'').toLowerCase();
+  const cls = res==='pass'?'pass':'fail';
+  const bc = cls==='pass'?'bp':'bf';
+  const cc = v.confidence==='high'?(cls==='fail'?'bf':'bp'):'bw';
+  const id = (v.action_id||'').slice(0,10);
+  const ms = v.latency_ms||0;
+  const failFill = cls==='fail'?' fail':'';
+  const diffs = (v.diffs||[]);
+  const flashCls = isNew ? ' new-flash' : '';
+  return `<div class="card card-verifier ${cls}${flashCls}">
+    <div class="card-row1">
+      <span class="card-id" title="${v.action_id}">${id}…</span>
+      <span class="card-time">${fmt(v.verified_at)}</span>
+      <span class="badge ${bc}">${v.result}</span>
+      <span class="badge ${cc}">${v.confidence}</span>
+    </div>
+    <div class="card-meta">
+      <span><span class="key">cat</span>${v.failure_category||'none'}</span>
+      <span><span class="key">retries</span>${v.settle_retries??0}</span>
+      <span><span class="key">lat</span>${fmtMs(ms)}</span>
+      <span><span class="key">target</span>${v.derived_correct_target||'—'}</span>
+    </div>
+    <div class="lat-bar"><div class="lat-fill${failFill}" style="width:${lat2pct(ms)}%"></div></div>
+    ${diffs.length?`<div class="card-diffs">${diffs.map(d=>`⚠ ${d}`).join('<br/>')}</div>`:''}
+  </div>`;
+}
+
+function slackCard(msg) {
+  return `<div class="slack-msg">
+    <span class="slack-mid">${msg.id||'—'}</span>
+    <span class="slack-text">${msg.text||'—'}</span>
+  </div>`;
+}
+
+function notionMini(id, t) {
+  const sc = t.priority==='high'?'var(--coral)':t.priority==='medium'?'var(--amber)':'var(--muted)';
+  return `<div class="notion-mini">
+    <span class="notion-id">${id}</span>
+    <span class="badge bw">${t.category||'?'}</span>
+    <span style="font-size:0.55rem;color:${sc}">${t.priority||'?'}</span>
+  </div>`;
+}
+
+function empty(icon,title,sub) {
+  return `<div class="empty">
+    <div class="empty-icon">${icon}</div>
+    <div class="empty-title">${title}</div>
+    <div class="empty-sub">${sub}</div>
+  </div>`;
+}
+
+function animateKPI(el, val, suffix='') {
+  const current = parseFloat(el.textContent)||0;
+  const target = parseFloat(val)||0;
+  if(current===target) { el.textContent = val; return; }
+  const duration = 600, start=performance.now(), from=current;
+  const step = now => {
+    const p = Math.min((now-start)/duration,1);
+    const e = 1-Math.pow(1-p,3);
+    const v = from+(target-from)*e;
+    el.textContent = (Number.isInteger(target)?Math.round(v):v.toFixed(1))+suffix;
+    if(p<1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function flashKPI(idx) {
+  const kpis = document.querySelectorAll('.kpi');
+  const kpi = kpis[idx];
+  if(!kpi) return;
+  kpi.classList.remove('updated');
+  void kpi.offsetWidth;
+  kpi.classList.add('updated');
+}
+
+function render() {
+  const al = document.getElementById('action-list');
+  const vl = document.getElementById('verdict-list');
+  const sl = document.getElementById('slack-list');
+  const nl = document.getElementById('notion-mini-list');
+
+  // New item detection
+  const newAIds = new Set(actions.map(a=>a.action_id));
+  const newVIds = new Set(verdicts.map(v=>v.action_id));
+  const newAs = actions.filter(a=>!prevActionIds.has(a.action_id));
+  const newVs = verdicts.filter(v=>!prevVerdictIds.has(v.action_id));
+  prevActionIds = newAIds;
+  prevVerdictIds = newVIds;
+
+  // Actions
+  document.getElementById('pc-actions').textContent = `${actions.length}`;
+  if(actions.length) {
+    al.innerHTML = [...actions].reverse().map((a,i)=>actionCard(a,newAs.some(n=>n.action_id===a.action_id))).join('');
+  } else {
+    al.innerHTML = empty('📭','No actions yet','Run: python -m worker.agent');
+  }
+
+  // Verdicts
+  document.getElementById('pc-verdicts').textContent = `${verdicts.length}`;
+  if(verdicts.length) {
+    vl.innerHTML = [...verdicts].reverse().map(v=>verdictCard(v,newVs.some(n=>n.action_id===v.action_id))).join('');
+  } else {
+    vl.innerHTML = empty('🔍','No verdicts yet','Run: python -m verifier.agent');
+  }
+
+  // Slack
+  const msgs = Array.isArray(slackDb)?slackDb:(slackDb['#verity-status']||[]);
+  document.getElementById('pc-slack').textContent = `${msgs.length}`;
+  sl.innerHTML = msgs.length ? [...msgs].reverse().map(slackCard).join('') : empty('💬','No messages yet','');
+
+  // Notion mini
+  const ne = Object.entries(notionDb);
+  nl.innerHTML = ne.length ? ne.map(([id,t])=>notionMini(id,t)).join('') : '<div style="font-size:0.62rem;color:rgba(124,134,151,0.3);padding:0.2rem">No tickets yet</div>';
+
+  // KPIs
+  const pass = verdicts.filter(v=>v.result==='PASS').length;
+  const fail = verdicts.filter(v=>v.result==='FAIL').length;
+  const pending = Math.max(0, actions.length - verdicts.length);
+  const avgLat = verdicts.length ? Math.round(verdicts.reduce((s,v)=>s+(v.latency_ms||0),0)/verdicts.length) : null;
+  const rate = verdicts.length ? Math.round(pass/verdicts.length*100) : null;
+  const totalRetries = verdicts.reduce((s,v)=>s+(v.settle_retries||0),0);
+
+  animateKPI(document.getElementById('kv-total'), actions.length);
+  animateKPI(document.getElementById('kv-pass'), pass);
+  animateKPI(document.getElementById('kv-fail'), fail);
+  animateKPI(document.getElementById('kv-pending'), pending);
+  document.getElementById('kv-lat').textContent = avgLat!==null ? fmtMs(avgLat) : '—';
+  document.getElementById('kv-rate').textContent = rate!==null ? rate+'%' : '—';
+
+  // Sparklines
+  addSpark(0, actions.length);
+  addSpark(1, pass);
+  addSpark(2, fail);
+  addSpark(3, pending);
+  addSpark(4, avgLat||0);
+  addSpark(5, rate||0);
+
+  if(newAs.length) { flashKPI(0); flashKPI(3); }
+  if(newVs.length) { flashKPI(1); flashKPI(2); flashKPI(4); flashKPI(5); }
+
+  // Flow pane data
+  flowActions = actions.length;
+  flowVerdicts = verdicts.length;
+  flowFail = fail;
+  document.getElementById('fs-pending').textContent = pending;
+  document.getElementById('fs-retries').textContent = totalRetries;
+
+  // Status bar
+  document.getElementById('sb-time').textContent = new Date().toLocaleTimeString('en-GB',{hour12:false});
+  document.getElementById('sb-a').textContent = actions.length;
+  document.getElementById('sb-v').textContent = verdicts.length;
+  document.getElementById('sb-pr').textContent = rate!==null ? rate+'%' : '—';
+}
+
+/* ════════════════ FETCH ════════════════ */
+async function fetchJ(url) {
+  try { const r=await fetch(url); if(!r.ok) throw 0; return r.json(); } catch{ return null; }
+}
+
+window.refresh = async () => {
+  const api = document.getElementById('sb-api-status');
+  const [a,v,n,s] = await Promise.all([
+    fetchJ('/api/actions'), fetchJ('/api/verifications'),
+    fetchJ('/api/notion_db'), fetchJ('/api/slack_db')
+  ]);
+  if(a!==null) {
+    actions=a; verdicts=v||[]; notionDb=n||{}; slackDb=s||[];
+    api.style.color='var(--cyan)';
+    api.textContent='connected';
+  } else {
+    api.style.color='var(--coral)';
+    api.textContent='offline';
+  }
+  render();
+};
+
+/* ════════════════ BOOT ════════════════ */
+initFlow();
+refresh();
+setInterval(refresh, 4000);
+
+})();
+</script>
 </body>
 </html>
