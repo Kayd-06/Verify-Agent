@@ -2,7 +2,15 @@
   <img src="https://img.shields.io/badge/Status-Hackathon_Ready-success?style=for-the-badge" alt="Status" />
   <h1>🛡️ Verity</h1>
   <p><b>An AI Agent that audits, verifies, and remediates other AI Agents in real-time.</b></p>
+  
+  <div>
+    <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+    <img src="https://img.shields.io/badge/Groq-000000?style=for-the-badge&logo=groq&logoColor=white" alt="Groq" />
+    <img src="https://img.shields.io/badge/Vanilla_JS-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="Vanilla JS" />
+    <img src="https://img.shields.io/badge/Notion_API-000000?style=for-the-badge&logo=notion&logoColor=white" alt="Notion" />
+  </div>
   <br>
+
   <!-- TODO: Drop a 10-second GIF of the "ATTACK BLOCKED" dashboard overlay here -->
   <img src="https://via.placeholder.com/800x450/161B24/5EEAD4?text=Dashboard+Demo+GIF+Goes+Here" alt="Verity Dashboard Demo" width="800">
 </div>
@@ -19,14 +27,19 @@ When a Tier-1 support agent accidentally deletes a customer's production cluster
 
 **Verity is an independent Verification Agent that audits the actions of other agents *before* the damage is permanent.** 
 
-It runs completely decoupled from your primary worker agents. When a worker agent executes an action (e.g., creating a Notion ticket, dropping a database table, sending an email), Verity:
+It runs completely decoupled from your primary worker agents. When a worker agent executes an action (e.g., creating a Notion ticket, dropping a database table, sending an email), Verity immediately steps in.
 
-1. **Re-derives the expected action** from the raw context using a *different, independent model instance*.
-2. **Performs structural diffing** to compare the Worker's action against the Verifier's expected action.
-3. **Auto-Remediates** by immediately reverting the API call if a critical mismatch is found.
-4. **Escalates** to human operators via Slack for high-confidence failures.
+### 🌟 Key Features
 
-### 🎭 The "WOW" Demo: Prompt Injection Defense
+- **🧠 Independent Derivation:** Verity does not ask the LLM "Did the worker do a good job?". LLMs are sycophants and will say yes. Instead, Verity independently re-derives the expected action from the raw context.
+- **⚖️ Structural Diffing:** Verity performs deterministic structural diffing in Python to compare the Worker's action against its own derived truth.
+- **⚡ Auto-Remediation:** If a critical mismatch is found (e.g., wrong priority, wrong target), Verity immediately fires a webhook to revert the API call.
+- **🚨 Human Escalation:** High-confidence failures are instantly escalated to human operators via Slack.
+- **📊 Real-time Dashboard:** A sleek, live-streaming UI built with Server-Sent Events (SSE) to monitor the Worker and Verity in real-time.
+
+---
+
+## 🎭 The "WOW" Demo: Prompt Injection Defense
 
 In our live demo, we hit the primary Worker agent with a **Prompt Injection Attack**:
 
@@ -34,26 +47,30 @@ In our live demo, we hit the primary Worker agent with a **Prompt Injection Atta
 
 1. **The Worker Fails:** It falls for the injection, creates a low-priority ticket, and moves on.
 2. **Verity Catches It:** Within milliseconds, Verity re-analyzes the raw email, identifies the critical security context, and detects the Worker's critical lapse in judgment.
-3. **Remediation:** Verity instantly auto-reverts the bad ticket in Notion and blasts a `🚨 SEV-1 ESCALATION` to the engineering Slack channel. 
+3. **Remediation:** Verity instantly auto-reverts the bad ticket in Notion, updates the dashboard with a full-screen red warning, and blasts a `🚨 SEV-1 ESCALATION` to the engineering Slack channel. 
+
+---
 
 ## 🏗️ Architecture
 
 ```mermaid
 graph TD
-    A[Incoming Email/Trigger] -->|Raw Context| B(Worker Agent)
-    B -->|Executes API Call| C[(Notion / Target API)]
-    B -->|Logs Action| D[(Action Log)]
+    A[📨 Incoming Trigger] -->|Raw Context| B(🤖 Worker Agent)
+    B -->|Executes API Call| C[(🎯 Target API / Notion)]
+    B -->|Logs Action| D[(📝 Action Log)]
     
-    A -->|Raw Context| E(Verity: Verifier Agent)
+    A -->|Raw Context| E(🛡️ Verity: Verifier Agent)
     D -->|Polls Action| E
     
     E -->|1. Re-derive Intent| F{Is Action Safe?}
-    F -->|Yes| G[Log PASS]
-    F -->|No: Structural Diff Fails| H[Trigger Remediation Engine]
+    F -->|✅ Yes| G[Log PASS]
+    F -->|❌ No: Structural Diff Fails| H[Trigger Remediation Engine]
     
-    H -->|Revert API Call| C
-    H -->|Escalate| I[Slack Alerts Channel]
+    H -->|⏪ Revert API Call| C
+    H -->|🚨 Escalate| I[💬 Slack Alerts Channel]
 ```
+
+---
 
 ## 🚀 How to Run Locally
 
@@ -84,12 +101,6 @@ python3 -m worker.agent
 # 5. Run Verity (Terminal 3)
 python3 -m verifier.agent
 ```
-
-## 🧠 Under the Hood
-
-- **Independent Derivation:** Verity does not ask the LLM "Did the worker do a good job?". LLMs are sycophants and will say yes. Instead, Verity is given the raw inputs and asked to independently generate the ideal action. Verity then performs deterministic structural diffing (e.g., checking if the priority level matches) in Python.
-- **Fast & Cheap:** Powered by `groq/compound-mini` for lightning-fast, ultra-low latency audits that don't block the critical path.
-- **Pluggable Remediation Engine:** Simple `revert(action)` and `escalate(action)` hooks allow Verity to undo API calls across any connected integration.
 
 ---
 *Built with ❤️ for the Hackathon.*
