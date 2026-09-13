@@ -76,8 +76,12 @@ def process_email(email):
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"}
     )
-    
-    classification_dict = json.loads(response.choices[0].message.content)
+    import re
+    content = response.choices[0].message.content or "{}"
+    match = re.search(r'\{.*\}', content, re.DOTALL)
+    if match:
+        content = match.group(0)
+    classification_dict = json.loads(content)
     classification = Classification(**classification_dict)
     
     if classification.action_type == "incomplete":

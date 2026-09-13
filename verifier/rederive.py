@@ -69,5 +69,10 @@ Respond with JSON ONLY containing keys 'derived_target_id' and 'reasoning'."""
         response_format={"type": "json_object"}
     )
     
-    parsed_json = json.loads(response.choices[0].message.content)
+    import re
+    content = response.choices[0].message.content or "{}"
+    match = re.search(r'\{.*\}', content, re.DOTALL)
+    if match:
+        content = match.group(0)
+    parsed_json = json.loads(content)
     return parsed_json.get("derived_target_id", "none")
