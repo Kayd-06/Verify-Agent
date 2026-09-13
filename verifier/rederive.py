@@ -5,6 +5,7 @@ the correct Notion target ID, without ever looking at what the Worker claimed.
 Uses Gemini with rate-limit awareness.
 """
 import json
+import time
 from groq import Groq
 from pydantic import BaseModel
 from dotenv import load_dotenv
