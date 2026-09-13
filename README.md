@@ -11,8 +11,8 @@
   </div>
   <br>
 
-  <!-- TODO: Drop a 10-second GIF of the "ATTACK BLOCKED" dashboard overlay here -->
-  <img src="https://via.placeholder.com/800x450/161B24/5EEAD4?text=Dashboard+Demo+GIF+Goes+Here" alt="Verity Dashboard Demo" width="800">
+  <!-- Dashboard Demo Recording -->
+  <video src="https://github.com/Kayd-06/Verify-Agent/raw/main/assets/demo.mp4" autoplay loop muted width="800"></video>
 </div>
 
 ---
