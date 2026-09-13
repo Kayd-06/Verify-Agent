@@ -3,359 +3,791 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verity Dashboard</title>
-  <link rel="icon" type="image/jpeg" href="../landing/assets/favicon.jpg"/>
+  <title>Verity — Command Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    /* Brand Colors and Fonts - Strict Constraints */
     :root {
       --bg: #0A0D12;
       --panel: #12161D;
+      --panel-2: #161B24;
       --line: #232933;
       --text: #E8EAED;
       --muted: #7C8697;
       --cyan: #5EEAD4;
       --coral: #FF6B57;
       --amber: #F5B942;
-      --font-serif: 'Fraunces', serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --serif: 'Fraunces', serif;
+      --mono: 'JetBrains Mono', monospace;
     }
-    
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
-      font-family: var(--font-mono); 
-      margin: 0;
-      padding: 0;
-      -webkit-font-smoothing: antialiased;
+      font-family: var(--mono);
+      min-height: 100vh;
     }
 
-    h1, h2, h3, h4 {
-      font-family: var(--font-serif);
-      font-weight: 400;
-      margin: 0;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 50px 24px;
-    }
-
-    /* Header */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 50px;
+    /* ─── HEADER ─── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,13,18,0.92);
+      backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--line);
-      padding-bottom: 24px;
+      padding: 0 40px;
+      height: 64px;
+      display: flex; align-items: center; gap: 20px;
     }
 
-    .brand {
-      font-size: 2.2rem;
-      letter-spacing: 0.05em;
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text);
     }
-    .brand span {
+    .nav-logo em { color: var(--cyan); font-style: normal; }
+
+    .nav-pill {
+      background: rgba(94,234,212,0.07);
+      border: 1px solid rgba(94,234,212,0.2);
       color: var(--cyan);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .nav-dot {
+      width: 6px; height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--cyan);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .nav-time {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .nav-time strong { color: var(--text); }
+
+    /* ─── HERO STAT BAR ─── */
+    .stat-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--line);
     }
 
-    .status-badge {
+    .stat {
+      padding: 32px 40px;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+    .stat.loaded::before { transform: scaleX(1); }
+
+    .stat-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+    .stat-number {
+      font-family: var(--serif);
+      font-size: 3rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    .stat-sub {
+      font-size: 0.68rem;
+      margin-top: 2px;
+    }
+
+    .s-cyan { color: var(--cyan); }
+    .s-coral { color: var(--coral); }
+    .s-amber { color: var(--amber); }
+    .s-green { color: #6CDBA0; }
+
+    /* ─── PAGE BODY ─── */
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 32px;
+    }
+
+    /* ─── SECTION TITLE ─── */
+    .section-title {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-weight: 400;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+    .section-title .badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ─── TIMELINE ─── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .timeline-group {
+      position: relative;
+    }
+
+    .timeline-group + .timeline-group {
+      margin-top: 32px;
+    }
+
+    /* Email header row */
+    .email-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(35,41,51,0.4);
+      border: 1px solid var(--line);
+      border-radius: 12px 12px 0 0;
+      border-bottom: none;
+    }
+
+    .email-icon {
+      width: 36px; height: 36px;
       background: rgba(94,234,212,0.08);
       border: 1px solid rgba(94,234,212,0.2);
-      color: var(--cyan);
-      padding: 10px 20px;
-      border-radius: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
       font-size: 1rem;
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      background: var(--cyan);
-      border-radius: 50%;
-      box-shadow: 0 0 12px var(--cyan);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+      flex-shrink: 0;
     }
 
-    /* KPI Cards */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-bottom: 60px;
-    }
-    .kpi-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 32px 24px;
-      text-align: center;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-    }
-    .kpi-value {
-      font-family: var(--font-serif);
-      font-size: 3.5rem;
-      margin-bottom: 12px;
-      line-height: 1;
-    }
-    .kpi-label {
-      color: var(--muted);
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .text-cyan { color: var(--cyan); }
-    .text-coral { color: var(--coral); }
-    .text-amber { color: var(--amber); }
-
-    /* Main Columns */
-    .columns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-    }
-
-    .col-header {
-      font-size: 1.8rem;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* Activity Cards */
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-    .card:hover {
-      border-color: var(--muted);
-      transform: translateY(-2px);
-    }
-
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .app-badge {
-      font-size: 0.85rem;
-      padding: 6px 12px;
-      border-radius: 6px;
-      background: rgba(124, 134, 151, 0.1);
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .card-time {
-      font-size: 0.9rem;
+    .email-from {
+      font-size: 0.78rem;
       color: var(--muted);
     }
-
-    .card-title {
-      font-size: 1.25rem;
+    .email-subject {
+      font-size: 0.95rem;
       color: var(--text);
-      line-height: 1.4;
+      margin-top: 2px;
     }
 
-    .card-desc {
+    .email-time {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Action steps */
+    .steps {
+      border: 1px solid var(--line);
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+      position: relative;
+      animation: stepIn 0.4s ease;
+      transition: background 0.2s;
+    }
+    .step:hover { background: var(--panel-2); }
+
+    @keyframes stepIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .step-indicator {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
       font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .si-notion { background: rgba(245,185,66,0.12); border: 1px solid rgba(245,185,66,0.25); }
+    .si-slack  { background: rgba(94,234,212,0.12); border: 1px solid rgba(94,234,212,0.25); }
+    .si-pass   { background: rgba(94,234,212,0.12); border: 1px solid rgba(94,234,212,0.25); }
+    .si-fail   { background: rgba(255,107,87,0.12); border: 1px solid rgba(255,107,87,0.25); }
+    .si-skip   { background: rgba(124,134,151,0.1);  border: 1px solid rgba(124,134,151,0.2); }
+
+    .step-body { flex: 1; min-width: 0; }
+
+    .step-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .step-desc {
+      font-size: 0.78rem;
       color: var(--muted);
       line-height: 1.6;
     }
 
-    .status-pass { color: var(--cyan); }
-    .status-fail { color: var(--coral); }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px;
-      color: var(--muted);
-      background: var(--panel);
-      border-radius: 16px;
-      border: 1px dashed var(--line);
-      font-size: 1.1rem;
+    .step-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
-    @media (max-width: 900px) {
-      .columns { grid-template-columns: 1fr; }
-      .kpi-grid { grid-template-columns: 1fr; }
+    .step-time {
+      font-size: 0.68rem;
+      color: rgba(124,134,151,0.5);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .chip::before { content: '●'; font-size: 0.4rem; }
+
+    .chip-pass   { color: var(--cyan);  background: rgba(94,234,212,0.07);  border: 1px solid rgba(94,234,212,0.18);  }
+    .chip-fail   { color: var(--coral); background: rgba(255,107,87,0.07);  border: 1px solid rgba(255,107,87,0.18);  }
+    .chip-amber  { color: var(--amber); background: rgba(245,185,66,0.07);  border: 1px solid rgba(245,185,66,0.18);  }
+    .chip-muted  { color: var(--muted); background: rgba(124,134,151,0.07); border: 1px solid rgba(124,134,151,0.18); }
+
+    .priority-high  { color: var(--coral); }
+    .priority-med   { color: var(--amber); }
+    .priority-low   { color: var(--muted); }
+
+    /* Verifier result on a step */
+    .verdict-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+    .verdict-pass {
+      background: rgba(94,234,212,0.05);
+      border: 1px solid rgba(94,234,212,0.12);
+      color: var(--cyan);
+    }
+    .verdict-fail {
+      background: rgba(255,107,87,0.05);
+      border: 1px solid rgba(255,107,87,0.12);
+      color: var(--coral);
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .panel-head-icon { font-size: 1.1rem; }
+    .panel-head-title { font-size: 0.82rem; font-weight: 500; flex: 1; }
+    .panel-head-count {
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .panel-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+    /* Ticket card */
+    .ticket {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.2s;
+    }
+    .ticket:hover { border-color: var(--muted); }
+
+    .ticket-top { display: flex; align-items: center; gap: 8px; }
+    .ticket-cat {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .cat-bug     { background: rgba(255,107,87,0.1); color: var(--coral); }
+    .cat-billing { background: rgba(245,185,66,0.1); color: var(--amber); }
+    .cat-feature { background: rgba(94,234,212,0.1); color: var(--cyan); }
+    .cat-default { background: rgba(124,134,151,0.1); color: var(--muted); }
+
+    .ticket-priority { font-size: 0.65rem; margin-left: auto; }
+    .ticket-id { font-size: 0.68rem; color: rgba(124,134,151,0.5); }
+    .ticket-title { font-size: 0.82rem; color: var(--text); line-height: 1.5; }
+
+    /* Slack messages */
+    .slack-msg {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+    }
+    .slack-avatar {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--cyan) 0%, #2dd4bf 100%);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--bg);
+      flex-shrink: 0;
+    }
+    .slack-content { flex: 1; min-width: 0; }
+    .slack-name { font-size: 0.7rem; color: var(--cyan); margin-bottom: 4px; }
+    .slack-text { font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+
+    /* ─── EMPTY STATE ─── */
+    .empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.8;
+    }
+    .empty-emoji { font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+    /* ─── FOOTER STATUS BAR ─── */
+    .footer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 30px;
+      background: rgba(10,13,18,0.95);
+      border-top: 1px solid var(--line);
+      display: flex; align-items: center;
+      padding: 0 40px;
+      gap: 20px;
+      font-size: 0.65rem;
+      color: var(--muted);
+      backdrop-filter: blur(12px);
+      z-index: 50;
+    }
+    .footer strong { color: var(--text); }
+    #api-ok { color: var(--cyan); }
+    #api-bad { color: var(--coral); display: none; }
+    .footer-right { margin-left: auto; display: flex; gap: 16px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      .page { grid-template-columns: 1fr; }
+      .stat-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 650px) {
+      .nav, .stat, .page { padding-left: 16px; padding-right: 16px; }
+      .stat-bar { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <div class="brand">VER<span>I</span>TY</div>
-    <div class="status-badge" id="conn-status">
-      <div class="status-dot"></div>
-      System Active
-    </div>
-  </header>
-
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-value text-cyan" id="kpi-tasks">0</div>
-      <div class="kpi-label">Tasks Handled</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value text-cyan" id="kpi-pass">100%</div>
-      <div class="kpi-label">Quality Score</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value text-coral" id="kpi-fail">0</div>
-      <div class="kpi-label">Errors Prevented</div>
-    </div>
+<!-- ═══ NAV ═══ -->
+<nav class="nav">
+  <span class="nav-logo">VER<em>I</em>TY</span>
+  <div class="nav-pill">
+    <div class="nav-dot"></div>
+    Live
   </div>
+  <div class="nav-time">Updated: <strong id="nav-time">—</strong></div>
+</nav>
 
-  <div class="columns">
-    <!-- Left Column: What AI did -->
-    <div>
-      <h2 class="col-header">
-        Recent Activity
-        <span id="count-worker" style="font-size:1.1rem; color:var(--muted)">0</span>
-      </h2>
-      <div class="list" id="worker-list">
-        <div class="empty-state">Waiting for the AI to perform tasks...</div>
-      </div>
-    </div>
-    
-    <!-- Right Column: Verification Results -->
-    <div>
-      <h2 class="col-header">
-        Quality Control
-        <span id="count-verifier" style="font-size:1.1rem; color:var(--muted)">0</span>
-      </h2>
-      <div class="list" id="verifier-list">
-        <div class="empty-state">Waiting for quality checks...</div>
-      </div>
-    </div>
+<!-- ═══ HERO STATS ═══ -->
+<div class="stat-bar">
+  <div class="stat s-cyan">
+    <div class="stat-icon">📬</div>
+    <div class="stat-number s-cyan" id="stat-emails">0</div>
+    <div class="stat-label">Emails Handled</div>
+    <div class="stat-sub s-cyan">By the AI this session</div>
+  </div>
+  <div class="stat s-green">
+    <div class="stat-icon">✅</div>
+    <div class="stat-number s-green" id="stat-pass">0</div>
+    <div class="stat-label">Actions Approved</div>
+    <div class="stat-sub s-green" id="stat-rate">—</div>
+  </div>
+  <div class="stat s-coral">
+    <div class="stat-icon">🛡️</div>
+    <div class="stat-number s-coral" id="stat-fail">0</div>
+    <div class="stat-label">Mistakes Prevented</div>
+    <div class="stat-sub s-coral">Caught before they happened</div>
+  </div>
+  <div class="stat s-amber">
+    <div class="stat-icon">🎟️</div>
+    <div class="stat-number s-amber" id="stat-tickets">0</div>
+    <div class="stat-label">Tickets Created</div>
+    <div class="stat-sub s-amber">In your Notion workspace</div>
   </div>
 </div>
 
+<!-- ═══ PAGE BODY ═══ -->
+<div class="page">
+
+  <!-- MAIN TIMELINE -->
+  <div>
+    <div class="section-title">
+      What's happening
+      <span class="badge" id="total-count">0 actions</span>
+    </div>
+    <div class="timeline" id="timeline">
+      <div class="empty">
+        <span class="empty-emoji">📭</span>
+        No activity yet.<br>Run <strong>python -m worker.agent</strong> to start.
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- Support Tickets -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-head-icon">📋</span>
+        <span class="panel-head-title">Support Tickets</span>
+        <span class="panel-head-count" id="ticket-count">0</span>
+      </div>
+      <div class="panel-body" id="ticket-list">
+        <div class="empty" style="padding:24px">
+          <span class="empty-emoji" style="font-size:1.5rem">📭</span>
+          No tickets yet
+        </div>
+      </div>
+    </div>
+
+    <!-- Slack Alerts -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-head-icon">💬</span>
+        <span class="panel-head-title">Team Alerts (Slack)</span>
+        <span class="panel-head-count" id="slack-count">0</span>
+      </div>
+      <div class="panel-body" id="slack-list">
+        <div class="empty" style="padding:24px">
+          <span class="empty-emoji" style="font-size:1.5rem">💬</span>
+          No messages yet
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="footer">
+  <span>Verity Dashboard</span>
+  <span>●</span>
+  <span id="api-ok">● Connected — refreshing every 4s</span>
+  <span id="api-bad">● Offline — retrying…</span>
+  <div class="footer-right">
+    <span>Actions: <strong id="f-actions">0</strong></span>
+    <span>Checks: <strong id="f-checks">0</strong></span>
+    <span>Pass rate: <strong id="f-rate">—</strong></span>
+  </div>
+</div>
+
+<div style="height:40px"></div><!-- Footer padding -->
+
 <script>
-// Format date to readable time
-function fmt(iso) {
-  if(!iso) return 'Just now';
-  try { return new Date(iso).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); } catch{return iso;}
+/* ══════════════════ HELPERS ══════════════════ */
+function fmtTime(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+  catch { return iso; }
 }
 
-// Clean up ugly API names (e.g. create_ticket -> Create Ticket)
-function cleanName(str) {
-  if (!str) return 'Action';
-  return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+function clean(str) {
+  if (!str) return '';
+  return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-// Render data into the DOM
-function render(actions, verdicts) {
-  const wList = document.getElementById('worker-list');
-  const vList = document.getElementById('verifier-list');
-  
-  document.getElementById('count-worker').textContent = actions.length;
-  document.getElementById('count-verifier').textContent = verdicts.length;
+function catClass(cat) {
+  if (!cat) return 'cat-default';
+  if (cat.includes('bug'))     return 'cat-bug';
+  if (cat.includes('billing')) return 'cat-billing';
+  if (cat.includes('feature')) return 'cat-feature';
+  return 'cat-default';
+}
 
-  const passes = verdicts.filter(v => v.result === 'PASS').length;
-  const fails = verdicts.filter(v => v.result === 'FAIL').length;
-  
-  document.getElementById('kpi-tasks').textContent = actions.length;
-  document.getElementById('kpi-fail').textContent = fails;
-  document.getElementById('kpi-pass').textContent = verdicts.length ? Math.round((passes / verdicts.length) * 100) + '%' : '100%';
+function priorityClass(p) {
+  if (p === 'high')   return 'priority-high';
+  if (p === 'medium') return 'priority-med';
+  return 'priority-low';
+}
 
-  if (actions.length) {
-    wList.innerHTML = [...actions].reverse().map(a => {
-      const summary = a.claimed_state?.summary || a.claimed_result?.summary || 'Processed automatically.';
-      return `
-        <div class="card">
-          <div class="card-top">
-            <div class="app-badge">${a.target_app || 'System'}</div>
-            <div class="card-time">${fmt(a.timestamp)}</div>
-          </div>
-          <div class="card-title">${cleanName(a.action_type)}</div>
-          <div class="card-desc">${summary}</div>
-        </div>
-      `;
-    }).join('');
+function actionIcon(type, app) {
+  if (app === 'notion') return { icon: '📋', cls: 'si-notion' };
+  if (app === 'slack')  return { icon: '💬', cls: 'si-slack'  };
+  if (type && type.includes('skip')) return { icon: '⏭', cls: 'si-skip' };
+  return { icon: '⚙️', cls: 'si-skip' };
+}
+
+function actionTitle(a) {
+  if (a.action_type === 'create_ticket') return 'Ticket created in Notion';
+  if (a.action_type === 'post_status')   return 'Update posted to Slack';
+  if (a.action_type === 'pre_empted_duplicate') return 'Duplicate email skipped';
+  return clean(a.action_type);
+}
+
+function actionDesc(a) {
+  const s = a.claimed_state?.summary || a.claimed_result?.summary || '';
+  if (a.action_type === 'create_ticket' && a.claimed_state) {
+    const cat = clean(a.claimed_state.category || '');
+    const pri = a.claimed_state.priority || '';
+    return `${s}<br><span style="font-size:0.72rem; color: var(--muted)">Category: ${cat} · Priority: <span class="${priorityClass(pri)}">${pri}</span></span>`;
   }
+  if (a.action_type === 'post_status') return 'Team notified on #verity-status channel.';
+  if (a.action_type === 'pre_empted_duplicate') return 'This email was already processed — skipping to avoid duplication.';
+  return s;
+}
 
-  if (verdicts.length) {
-    vList.innerHTML = [...verdicts].reverse().map(v => {
-      const isPass = (v.result || '').toLowerCase() === 'pass';
-      const colorCls = isPass ? 'status-pass' : 'status-fail';
-      const title = isPass ? 'Verified Successfully' : 'Error Caught';
-      let details = isPass ? 'All checks passed. The AI performed the correct action.' : ('Issue found: ' + cleanName(v.failure_category));
-      
-      if (!isPass && v.diffs && v.diffs.length > 0) {
-        details += '<br><br><span style="color:var(--coral)">' + v.diffs.join('<br>') + '</span>';
-      }
+/* ══════════════════ GROUP ACTIONS BY EMAIL ══════════════════ */
+function groupByEmail(actions) {
+  const groups = {};
+  const order = [];
+  for (const a of actions) {
+    const key = a.source_email_id || 'unknown';
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(a);
+  }
+  return order.map(k => ({ emailId: k, actions: groups[k] }));
+}
 
-      return `
-        <div class="card" style="border-left: 4px solid var(--${isPass ? 'cyan' : 'coral'})">
-          <div class="card-top">
-            <div class="app-badge" style="background:transparent; padding:0; font-weight:bold; color:var(--${isPass ? 'cyan' : 'coral'})">
-              ${isPass ? 'APPROVED' : 'BLOCKED'}
+/* ══════════════════ RENDER ══════════════════ */
+function render(actions, verdicts, notionDb, slackDb) {
+  /* ── Stats ── */
+  const emailIds = [...new Set(actions.map(a => a.source_email_id).filter(Boolean))];
+  const pass     = verdicts.filter(v => v.result === 'PASS').length;
+  const fail     = verdicts.filter(v => v.result === 'FAIL').length;
+  const tickets  = actions.filter(a => a.action_type === 'create_ticket').length;
+  const rate     = verdicts.length ? Math.round(pass / verdicts.length * 100) : null;
+
+  animNum('stat-emails',  emailIds.length);
+  animNum('stat-pass',    pass);
+  animNum('stat-fail',    fail);
+  animNum('stat-tickets', tickets);
+  document.getElementById('stat-rate').textContent = rate !== null ? `${rate}% quality score` : 'No checks yet';
+
+  document.getElementById('total-count').textContent = `${actions.length} action${actions.length !== 1 ? 's' : ''}`;
+  document.getElementById('f-actions').textContent = actions.length;
+  document.getElementById('f-checks').textContent  = verdicts.length;
+  document.getElementById('f-rate').textContent    = rate !== null ? rate + '%' : '—';
+
+  /* ── Verdict lookup ── */
+  const vMap = {};
+  for (const v of verdicts) vMap[v.action_id] = v;
+
+  /* ── Timeline ── */
+  const tl = document.getElementById('timeline');
+  if (!actions.length) {
+    tl.innerHTML = `<div class="empty"><span class="empty-emoji">📭</span>No activity yet.<br>Run <strong>python -m worker.agent</strong> to start.</div>`;
+  } else {
+    const groups = groupByEmail(actions);
+    tl.innerHTML = groups.map(g => {
+      const first = g.actions[0];
+      const emailLabel = g.emailId === 'unknown' ? 'System Task' : `Email: ${g.emailId.replace(/_/g, ' ')}`;
+      const steps = g.actions.map(a => {
+        const { icon, cls } = actionIcon(a.action_type, a.target_app);
+        const verdict = vMap[a.action_id];
+        let verdictHtml = '';
+        if (verdict) {
+          const isPass = verdict.result === 'PASS';
+          const diffs = (verdict.diffs || []).map(d => `• ${d}`).join('<br>');
+          verdictHtml = `
+            <div class="verdict-row ${isPass ? 'verdict-pass' : 'verdict-fail'}">
+              ${isPass ? '✅ Verified — action was correct.' : `❌ Error caught — <span style="opacity:0.8">${clean(verdict.failure_category) || 'Issue detected'}</span>${diffs ? `<br><span style="font-size:0.72rem; opacity:0.7; display:block; margin-top:4px;">${diffs}</span>` : ''}`}
+            </div>`;
+        }
+        return `
+          <div class="step">
+            <div class="step-indicator ${cls}">${icon}</div>
+            <div class="step-body">
+              <div class="step-title">${actionTitle(a)}</div>
+              <div class="step-desc">${actionDesc(a)}</div>
+              ${verdictHtml}
             </div>
-            <div class="card-time">${fmt(v.verified_at)}</div>
+            <div class="step-right">
+              <div class="step-time">${fmtTime(a.timestamp)}</div>
+              ${verdict ? `<div class="chip ${verdict.result === 'PASS' ? 'chip-pass' : 'chip-fail'}">${verdict.result === 'PASS' ? 'Approved' : 'Flagged'}</div>` : `<div class="chip chip-amber">Checking…</div>`}
+            </div>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="timeline-group">
+          <div class="email-header">
+            <div class="email-icon">✉️</div>
+            <div>
+              <div class="email-from">${emailLabel}</div>
+              <div class="email-subject">${g.actions.find(a => a.claimed_state?.summary)?.claimed_state?.summary || 'Automated processing'}</div>
+            </div>
+            <div class="email-time">${fmtTime(first.timestamp)}</div>
           </div>
-          <div class="card-title ${colorCls}">${title}</div>
-          <div class="card-desc">${details}</div>
-        </div>
-      `;
+          <div class="steps">${steps}</div>
+        </div>`;
     }).join('');
   }
+
+  /* ── Tickets ── */
+  const tickets_el = document.getElementById('ticket-list');
+  const ne = Object.entries(notionDb || {});
+  document.getElementById('ticket-count').textContent = ne.length;
+  if (ne.length) {
+    tickets_el.innerHTML = ne.map(([id, t]) => `
+      <div class="ticket">
+        <div class="ticket-top">
+          <span class="ticket-cat ${catClass(t.category)}">${clean(t.category) || 'Other'}</span>
+          <span class="ticket-priority ${priorityClass(t.priority)}">${t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢'} ${t.priority}</span>
+        </div>
+        <div class="ticket-id">${id.replace(/_/g, ' ')}</div>
+        <div class="ticket-title">${t.summary || '—'}</div>
+      </div>`).join('');
+  } else {
+    tickets_el.innerHTML = `<div class="empty" style="padding:24px"><span class="empty-emoji" style="font-size:1.5rem">📭</span>No tickets yet</div>`;
+  }
+
+  /* ── Slack ── */
+  const slackMsgs = Array.isArray(slackDb) ? slackDb : (slackDb?.['#verity-status'] || []);
+  const slack_el  = document.getElementById('slack-list');
+  document.getElementById('slack-count').textContent = slackMsgs.length;
+  if (slackMsgs.length) {
+    slack_el.innerHTML = [...slackMsgs].reverse().map(m => `
+      <div class="slack-msg">
+        <div class="slack-avatar">VT</div>
+        <div class="slack-content">
+          <div class="slack-name">verity-bot</div>
+          <div class="slack-text">${m.text || '—'}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    slack_el.innerHTML = `<div class="empty" style="padding:24px"><span class="empty-emoji" style="font-size:1.5rem">💬</span>No messages yet</div>`;
+  }
+
+  /* ── Stat bar animation ── */
+  document.querySelectorAll('.stat').forEach(s => {
+    s.classList.remove('loaded');
+    requestAnimationFrame(() => s.classList.add('loaded'));
+  });
 }
 
-// Fetch loop
+/* ══════════════════ ANIMATED COUNTER ══════════════════ */
+const animTargets = {};
+function animNum(id, target) {
+  if (animTargets[id] === target) return;
+  animTargets[id] = target;
+  const el = document.getElementById(id);
+  if (!el) return;
+  const from = parseFloat(el.textContent) || 0;
+  const start = performance.now();
+  const dur = 500;
+  const step = (now) => {
+    const t = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(from + (target - from) * ease);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/* ══════════════════ FETCH LOOP ══════════════════ */
+async function fetchJ(url) {
+  try { const r = await fetch(url); return r.ok ? r.json() : null; }
+  catch { return null; }
+}
+
 async function refresh() {
-  const statusEl = document.getElementById('conn-status');
-  try {
-    const [resA, resV] = await Promise.all([
-      fetch('/api/actions'),
-      fetch('/api/verifications')
-    ]);
-    if (!resA.ok || !resV.ok) throw new Error("Network error");
-    
-    const actions = await resA.json();
-    const verdicts = await resV.json();
-    
-    statusEl.innerHTML = '<div class="status-dot"></div> System Active';
-    statusEl.style.color = 'var(--cyan)';
-    statusEl.style.borderColor = 'rgba(94,234,212,0.2)';
-    
-    render(actions || [], verdicts || []);
-  } catch (e) {
-    statusEl.innerHTML = 'Connecting...';
-    statusEl.style.color = 'var(--coral)';
-    statusEl.style.borderColor = 'rgba(255,107,87,0.2)';
-  }
+  const [a, v, n, s] = await Promise.all([
+    fetchJ('/api/actions'), fetchJ('/api/verifications'),
+    fetchJ('/api/notion_db'), fetchJ('/api/slack_db')
+  ]);
+
+  const ok = a !== null;
+  document.getElementById('api-ok').style.display = ok ? '' : 'none';
+  document.getElementById('api-bad').style.display = ok ? 'none' : '';
+  document.getElementById('nav-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (ok) render(a || [], v || [], n || {}, s || []);
 }
 
 refresh();
 setInterval(refresh, 4000);
 </script>
-
 </body>
 </html>
