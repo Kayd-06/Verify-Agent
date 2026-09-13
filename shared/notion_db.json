@@ -1,50 +1,68 @@
 {
-  "ticket_ios17_crash": {
-    "status": "open",
-    "category": "bug",
-    "summary": "App crashes immediately upon opening the dashboard on iOS 17.",
-    "priority": "high"
-  },
-  "ticket_billing_change": {
-    "status": "open",
-    "category": "billing",
-    "summary": "User is asking how to switch their subscription from a monthly to an annual plan.",
-    "priority": "low"
-  },
-  "ticket_dark_mode_req": {
-    "status": "open",
-    "category": "feature_request",
-    "summary": "The user is requesting a dark mode feature to reduce eye strain at night.",
-    "priority": "low"
-  },
-  "ticket_e0735c": {
-    "status": "open",
-    "category": "bug",
-    "summary": "App crashes on startup on iOS 17.",
-    "priority": "high"
-  },
-  "ticket_d6b2e0": {
-    "status": "open",
-    "category": "billing",
-    "summary": "User wants to change their billing cycle from monthly to annual.",
-    "priority": "low"
-  },
-  "ticket_3bcb1c": {
+  "ticket_39e686": {
     "status": "open",
     "category": "bug",
     "summary": "The app crashes on startup on iOS 17.",
     "priority": "high"
   },
-  "ticket_billing_change_001": {
+  "ticket_c59f0f81": {
     "status": "open",
     "category": "billing",
-    "summary": "User wants to change billing cycle from monthly to annual.",
-    "priority": "medium"
+    "summary": "Customer wants to change billing cycle from monthly to annual.",
+    "priority": "low"
   },
-  "ticket_2d492c": {
+  "ticket_fce7b6": {
     "status": "open",
     "category": "feature_request",
-    "summary": "Request for adding a dark mode feature to the application",
+    "summary": "Add dark mode to the application for better nighttime usability.",
+    "priority": "medium"
+  },
+  "ticket_01685a": {
+    "status": "open",
+    "category": "access",
+    "summary": "User is unable to receive password reset emails and requests manual reset",
+    "priority": "high"
+  },
+  "ticket_00a418": {
+    "status": "open",
+    "category": "billing",
+    "summary": "Request for PDF invoice for August for accounting purposes.",
     "priority": "low"
+  },
+  "project_alpha": {
+    "status": "open",
+    "category": "status_update",
+    "summary": "[REVERTED BY VERITY]",
+    "priority": "medium"
+  },
+  "ticket_acme_refund": {
+    "status": "open",
+    "category": "billing",
+    "summary": "[REVERTED BY VERITY]",
+    "priority": "high"
+  },
+  "ticket_jon_smith": {
+    "status": "open",
+    "category": "access",
+    "summary": "[REVERTED BY VERITY]",
+    "priority": "high"
+  },
+  "ticket_f58cc3": {
+    "status": "open",
+    "category": "bug",
+    "summary": "User encountered a bug while using a product/feature.",
+    "priority": "high"
+  },
+  "ticket_f75763": {
+    "status": "open",
+    "category": "support",
+    "summary": "Request to cancel an unspecified item.",
+    "priority": "medium"
+  },
+  "ticket_ec066e": {
+    "status": "open",
+    "category": "support",
+    "summary": "The user is unable to access the main portal due to an ERR 502 on all pages.",
+    "priority": "high"
   }
 }

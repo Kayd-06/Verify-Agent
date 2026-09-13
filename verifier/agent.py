@@ -5,13 +5,13 @@ tags confidence, and emits verdicts to shared/verifications.jsonl.
 
 Failure classification map
 --------------------------
-wrong_target        → Worker wrote to wrong Notion page (HIGH confidence)
-no_op_claimed       → Worker claimed success but Notion state unchanged (HIGH)
-incomplete_task     → Action marked incomplete by Worker (HIGH)
-stale_state         → Notion was overwritten by a later action (HIGH)
-duplicate_skipped   → Worker correctly skipped a duplicate (PASS)
-semantic_mismatch   → Summary/priority diverges but structurally present (LOW)
-none                → No failure
+wrong_target        -> Worker wrote to wrong Notion page (HIGH confidence)
+no_op_claimed       -> Worker claimed success but Notion state unchanged (HIGH)
+incomplete_task     -> Action marked incomplete by Worker (HIGH)
+stale_state         -> Notion was overwritten by a later action (HIGH)
+duplicate_skipped   -> Worker correctly skipped a duplicate (PASS)
+semantic_mismatch   -> Summary/priority diverges but structurally present (LOW)
+none                -> No failure
 """
 
 import json
@@ -89,9 +89,9 @@ def _emit_verdict(
     with open(VERIFICATIONS_FILE, "a") as f:
         f.write(json.dumps(verdict) + "\n")
 
-    icon = "✅" if result == "PASS" else "❌"
+    icon = "[PASS]" if result == "PASS" else "[FAIL]"
     print(
-        f"  {icon} [{result}] action={action_id} "
+        f"  {icon} action={action_id} "
         f"cat={failure_category} conf={confidence} "
         f"retries={settle_retries} lat={latency_ms}ms"
     )
@@ -207,7 +207,7 @@ def run_verifier():
         target_app = action.get("target_app", "none")
         source_id = action["source_email_id"]
 
-        print(f"\n→ Verifying action={action_id} type={action_type} app={target_app}")
+        print(f"\n-> Verifying action={action_id} type={action_type} app={target_app}")
 
         if action_type in ("pre_empted_duplicate", "incomplete"):
             _verify_special(action)
@@ -217,13 +217,13 @@ def run_verifier():
             if email:
                 _verify_notion_action(action, email)
             else:
-                print(f"  ⚠️  Source email {source_id!r} not found — skipping")
+                print(f"  [WARNING]  Source email {source_id!r} not found - skipping")
 
         elif target_app == "slack":
             _verify_slack_action(action)
 
         else:
-            print(f"  ⚠️  Unknown target_app={target_app!r} — skipping")
+            print(f"  [WARNING]  Unknown target_app={target_app!r} - skipping")
 
 
 if __name__ == "__main__":

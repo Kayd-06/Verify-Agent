@@ -76,6 +76,6 @@ if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 7777
     server = HTTPServer(("", port), VerityHandler)
     print(f"Verity server running at http://localhost:{port}")
-    print(f"  Landing page → http://localhost:{port}/landing/")
-    print(f"  Dashboard    → http://localhost:{port}/dashboard/")
+    print(f"  Landing page -> http://localhost:{port}/landing/")
+    print(f"  Dashboard    -> http://localhost:{port}/dashboard/")
     server.serve_forever()

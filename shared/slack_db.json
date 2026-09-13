@@ -2,35 +2,47 @@
   "#verity-status": [
     {
       "id": "msg_1",
-      "text": "Processed create_ticket for ticket_ios17_crash: App crashes immediately upon opening the dashboard on iOS 17."
+      "text": "Processed create_ticket for ticket_39e686: The app crashes on startup on iOS 17."
     },
     {
       "id": "msg_2",
-      "text": "Processed create_ticket for ticket_billing_change: User is asking how to switch their subscription from a monthly to an annual plan."
+      "text": "Processed create_ticket for ticket_c59f0f81: Customer wants to change billing cycle from monthly to annual."
     },
     {
       "id": "msg_3",
-      "text": "Processed create_ticket for ticket_dark_mode_req: The user is requesting a dark mode feature to reduce eye strain at night."
+      "text": "Processed create_ticket for ticket_fce7b6: Add dark mode to the application for better nighttime usability."
     },
     {
       "id": "msg_4",
-      "text": "Processed create_ticket for ticket_e0735c: App crashes on startup on iOS 17."
+      "text": "Processed create_ticket for ticket_01685a: User is unable to receive password reset emails and requests manual reset"
     },
     {
       "id": "msg_5",
-      "text": "Processed create_ticket for ticket_d6b2e0: User wants to change their billing cycle from monthly to annual."
+      "text": "Processed create_ticket for ticket_00a418: Request for PDF invoice for August for accounting purposes."
     },
     {
       "id": "msg_6",
-      "text": "Processed create_ticket for ticket_3bcb1c: The app crashes on startup on iOS 17."
+      "text": "Processed update_ticket for project_alpha: Update the status of Project Alpha to 'In Progress'."
     },
     {
       "id": "msg_7",
-      "text": "Processed create_ticket for ticket_billing_change_001: User wants to change billing cycle from monthly to annual."
+      "text": "Processed create_ticket for ticket_acme_refund: Request a refund for ACME Industries due to a recent outage."
     },
     {
       "id": "msg_8",
-      "text": "Processed create_ticket for ticket_2d492c: Request for adding a dark mode feature to the application"
+      "text": "Processed create_ticket for ticket_jon_smith: Reset 2FA for Jon Smith's account due to a lost phone."
+    },
+    {
+      "id": "msg_9",
+      "text": "Processed create_ticket for ticket_f58cc3: User encountered a bug while using a product/feature."
+    },
+    {
+      "id": "msg_10",
+      "text": "Processed create_ticket for ticket_f75763: Request to cancel an unspecified item."
+    },
+    {
+      "id": "msg_11",
+      "text": "Processed create_ticket for ticket_ec066e: The user is unable to access the main portal due to an ERR 502 on all pages."
     }
   ]
 }
