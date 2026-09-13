@@ -13,58 +13,76 @@ from verifier.agent import run_verifier
 def clear_dbs():
     for f in ["shared/action_log.jsonl", "shared/verifications.jsonl"]:
         if os.path.exists(f):
-            open(f, 'w').close()  # Truncate to empty
-    # Reset JSON dbs to valid empty objects (not blank files)
+            # Safe truncation
+            with open(f, 'w') as fh:
+                pass
     for f in ["shared/notion_db.json", "shared/slack_db.json"]:
         with open(f, 'w') as fh:
             json.dump({}, fh)
-    # Reset slack to proper structure
     with open("shared/slack_db.json", "w") as fh:
         json.dump({"#verity-status": [], "#verity-alerts": []}, fh)
 
-def run_eval():
-    clear_dbs()
-    print("Cleaned databases. Starting eval run...")
+def run_eval(mode="full"):
+    if mode in ["full", "full_reset"]:
+        clear_dbs()
+        print(f"Cleaned databases. Starting {mode} run...")
     
     with open("eval/test_emails.json", "r") as f:
         emails = json.load(f)
         
+    if mode == "quick":
+        # Just the first 3 clean emails for a fast 30s demo
+        emails = [e for e in emails if e["thread_id"].startswith("th_clean_")][:3]
+    elif mode == "inject":
+        # Just the poison email
+        emails = [e for e in emails if e["thread_id"] == "th_poison_001"]
+    elif mode in ["full_demo", "full_reset"]:
+        # Orchestrated demo: 3 clean emails + 1 poison email
+        clean = [e for e in emails if e["thread_id"].startswith("th_clean_")][:3]
+        poison = [e for e in emails if e["thread_id"] == "th_poison_001"]
+        emails = clean + poison
+        
+    if mode in ["quick", "inject", "full_demo", "full_reset"]:
+        import uuid
+        run_id = uuid.uuid4().hex[:4]
+        for e in emails:
+            e["thread_id"] = f"{e['thread_id']}_{run_id}"
+
     print(f"Loaded {len(emails)} test emails. Throttling to stay under rate limits (sleep 4.5s between emails)...")
     
-    # To track ground truth
     expected_failures_threads = set()
     for e in emails:
-        # According to test data, if expected_action != what actually happens, it's a failure.
-        # For simplicity, if there's a decoy target, it's meant to fail.
         if "decoy_target_id" in e or e.get("expected_action") == "incomplete":
             expected_failures_threads.add(e["thread_id"])
     
     for idx, email in enumerate(emails):
         print(f"\n--- Processing Email {idx+1}/{len(emails)}: {email['subject']} ---")
-        
-        # 1. Run Worker
         try:
             process_email(email)
         except Exception as e:
             print(f"Worker Error: {e}")
-        
-        # 2. Run Verifier
+            
         try:
             run_verifier()
         except Exception as e:
             print(f"Verifier Error: {e}")
-        
-        # Throttle: compound-mini allows ~30 RPM; 2 LLM calls per email pair → need ~4s gap minimum
-        time.sleep(8)
+            
+        time.sleep(4.5)
 
-    # --- Compute Metrics ---
+    if mode == "full":
+        compute_metrics(expected_failures_threads)
+
+def compute_metrics(expected_failures_threads):
     action_map = {}
     if os.path.exists("shared/action_log.jsonl"):
         with open("shared/action_log.jsonl", "r") as f:
             for line in f:
                 if line.strip():
-                    a = json.loads(line)
-                    action_map[a["action_id"]] = a["source_email_id"]
+                    try:
+                        a = json.loads(line)
+                        action_map[a["action_id"]] = a["source_email_id"]
+                    except:
+                        pass
 
     verifications = []
     if os.path.exists("shared/verifications.jsonl"):
@@ -89,11 +107,10 @@ def run_eval():
     latencies = [v.get("latency_ms", 0) for v in verifications]
     median_latency = statistics.median(latencies) if latencies else 0
     
-    # True positives, false positives, etc.
-    true_positives = 0  # correctly flagged as FAIL
-    false_positives = 0 # incorrectly flagged as FAIL
-    true_negatives = 0  # correctly passed
-    false_negatives = 0 # incorrectly passed
+    true_positives = 0
+    false_positives = 0
+    true_negatives = 0
+    false_negatives = 0
     
     for v in verifications:
         thread_id = action_map.get(v["action_id"])
@@ -106,9 +123,6 @@ def run_eval():
                 false_positives += 1
         else:
             if is_expected_fail:
-                # wait, if expected fail but it passed, it's a false negative
-                # but what if it's a duplicate that was skipped correctly?
-                # duplicate_skipped is a PASS, but it's a correct behavior.
                 if v.get("failure_category") == "duplicate_skipped":
                     true_negatives += 1
                 else:
@@ -134,4 +148,5 @@ def run_eval():
     print("\nEvaluation complete! Dashboard should reflect these results.")
 
 if __name__ == "__main__":
-    run_eval()
+    mode = sys.argv[1] if len(sys.argv) > 1 else "full"
+    run_eval(mode)

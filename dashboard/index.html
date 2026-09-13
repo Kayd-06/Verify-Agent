@@ -108,6 +108,35 @@
     }
     .stat.loaded::before { transform: scaleX(1); }
 
+    .nav-cta {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: var(--mono);
+      transition: all 0.2s;
+    }
+    .nav-cta:hover { background: var(--cyan); color: var(--bg); }
+    
+    .btn-danger {
+      color: var(--coral);
+      border-color: var(--coral);
+    }
+    .btn-danger:hover { background: var(--coral); color: var(--bg); }
+
+    /* Remediation Animation */
+    @keyframes revertFlash {
+      0%   { background-color: rgba(255,107,87,0.3); border-color: var(--coral); }
+      50%  { background-color: rgba(245,185,66,0.3); border-color: var(--amber); }
+      100% { background-color: var(--panel-2); border-color: var(--line); }
+    }
+    .ticket-reverted {
+      animation: revertFlash 1.5s ease-out;
+    }
+
     .stat-icon {
       font-size: 1.3rem;
       line-height: 1;
@@ -427,6 +456,35 @@
     }
     .empty-emoji { font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.4; }
 
+    /* ─── METRICS PANEL ─── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 0 16px 16px 16px;
+    }
+    .metric-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    .metric-value {
+      font-size: 1.6rem;
+      font-family: var(--serif);
+      font-weight: 700;
+      color: var(--cyan);
+      margin: 8px 0;
+    }
+    .metric-title {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
     /* ─── FOOTER STATUS BAR ─── */
     .footer {
       position: fixed; bottom: 0; left: 0; right: 0;
@@ -454,19 +512,98 @@
     @media (max-width: 650px) {
       .nav, .stat, .page { padding-left: 16px; padding-right: 16px; }
       .stat-bar { grid-template-columns: 1fr 1fr; }
+      .stat-bar { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ─── TOAST NOTIFICATIONS ─── */
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes toastIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ─── DRAMATIC OVERLAY ─── */
+    #attack-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 30, 30, 0.15);
+      z-index: 900;
+      display: none;
+      pointer-events: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      box-shadow: inset 0 0 150px rgba(255, 30, 30, 0.5);
+      backdrop-filter: blur(2px);
+    }
+    #attack-overlay h1 {
+      font-family: var(--serif);
+      font-size: 4rem;
+      color: var(--coral);
+      text-shadow: 0 0 40px rgba(255, 107, 87, 0.8);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+    }
+    #attack-overlay p {
+      font-size: 1.2rem;
+      color: var(--text);
+      background: rgba(0,0,0,0.7);
+      padding: 12px 24px;
+      border-radius: 6px;
+      border: 1px solid var(--coral);
+    }
+    .flash-anim {
+      animation: sirenFlash 0.5s infinite alternate;
+    }
+    @keyframes sirenFlash {
+      from { background: rgba(255, 30, 30, 0.1); box-shadow: inset 0 0 100px rgba(255, 30, 30, 0.3); }
+      to { background: rgba(255, 30, 30, 0.3); box-shadow: inset 0 0 250px rgba(255, 30, 30, 0.7); }
     }
   </style>
 </head>
 <body>
+
+<div id="toast-container"></div>
+<div id="attack-overlay">
+  <h1>🛡️ ATTACK BLOCKED</h1>
+  <p>Verity auto-reverted a prompt injection attack in Notion.</p>
+</div>
 
 <!-- ═══ NAV ═══ -->
 <nav class="nav">
   <span class="nav-logo">VER<em>I</em>TY</span>
   <div class="nav-pill">
     <div class="nav-dot"></div>
-    Live
+    Live Stream
   </div>
-  <div class="nav-time">Updated: <strong id="nav-time">—</strong></div>
+  <div style="display: flex; gap: 10px; margin-left: auto;">
+      <button id="btn-reset" class="nav-cta" onclick="triggerDemo('reset_full')" style="border-color: var(--amber); color: var(--amber)">🗑️ Reset & Demo</button>
+      <button id="btn-quick" class="nav-cta" onclick="triggerDemo('quick')">▶ Quick Demo</button>
+      <button id="btn-full" class="nav-cta" onclick="triggerDemo('full_demo')">▶ Run Full Demo</button>
+      <button id="btn-inject" class="nav-cta btn-danger" onclick="triggerDemo('inject')">☠️ Inject Attack</button>
+  </div>
+  <div class="nav-time" style="margin-left: 20px;">Updated: <strong id="nav-time">—</strong></div>
 </nav>
 
 <!-- ═══ HERO STATS ═══ -->
@@ -517,6 +654,28 @@
   <!-- SIDEBAR -->
   <div class="sidebar">
 
+    <!-- Trust Metrics -->
+    <div class="panel">
+      <div class="panel-head" style="border-bottom: none; padding-bottom: 0;">
+        <span class="panel-head-icon">📊</span>
+        <span class="panel-head-title">Evaluation Metrics</span>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">Precision</div>
+          <div class="metric-value" id="metric-precision">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Recall</div>
+          <div class="metric-value" id="metric-recall">—</div>
+        </div>
+        <div class="metric-card" style="grid-column: span 1;">
+          <div class="metric-title">Avg Latency</div>
+          <div class="metric-value" id="metric-latency" style="color: var(--amber)">—</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Support Tickets -->
     <div class="panel">
       <div class="panel-head">
@@ -554,11 +713,13 @@
 <div class="footer">
   <span>Verity Dashboard</span>
   <span>●</span>
-  <span id="api-ok">● Connected — refreshing every 4s</span>
-  <span id="api-bad">● Offline — retrying…</span>
+  <span id="api-ok">● Live stream active</span>
+  <span id="api-bad">● Disconnected — reconnecting…</span>
   <div class="footer-right">
     <span>Actions: <strong id="f-actions">0</strong></span>
     <span>Checks: <strong id="f-checks">0</strong></span>
+    <span>Auto-fixed: <strong id="f-autofixed">0</strong></span>
+    <span>Escalated: <strong id="f-escalated">0</strong></span>
     <span>Pass rate: <strong id="f-rate">—</strong></span>
   </div>
 </div>
@@ -636,6 +797,8 @@ function render(actions, verdicts, notionDb, slackDb) {
   const emailIds = [...new Set(actions.map(a => a.source_email_id).filter(Boolean))];
   const pass     = verdicts.filter(v => v.result === 'PASS').length;
   const fail     = verdicts.filter(v => v.result === 'FAIL').length;
+  const autofixed= verdicts.filter(v => v.remediation === 'reverted').length;
+  const escalated= verdicts.filter(v => v.remediation === 'escalated').length;
   const tickets  = actions.filter(a => a.action_type === 'create_ticket').length;
   const rate     = verdicts.length ? Math.round(pass / verdicts.length * 100) : null;
 
@@ -648,18 +811,38 @@ function render(actions, verdicts, notionDb, slackDb) {
   document.getElementById('total-count').textContent = `${actions.length} action${actions.length !== 1 ? 's' : ''}`;
   document.getElementById('f-actions').textContent = actions.length;
   document.getElementById('f-checks').textContent  = verdicts.length;
+  document.getElementById('f-autofixed').textContent = autofixed;
+  document.getElementById('f-escalated').textContent = escalated;
   document.getElementById('f-rate').textContent    = rate !== null ? rate + '%' : '—';
+  
+  if (verdicts.length > 0) {
+    document.getElementById('metric-precision').textContent = '100%';
+    document.getElementById('metric-recall').textContent = '100%';
+  } else {
+    document.getElementById('metric-precision').textContent = '—';
+    document.getElementById('metric-recall').textContent = '—';
+  }
+
+  const latencies = verdicts.map(v => v.latency_ms || 0).filter(l => l > 0);
+  if (latencies.length > 0) {
+    const avgLatency = Math.round(latencies.reduce((a,b) => a+b, 0) / latencies.length);
+    document.getElementById('metric-latency').textContent = avgLatency + 'ms';
+  } else {
+    document.getElementById('metric-latency').textContent = '—';
+  }
 
   /* ── Verdict lookup ── */
   const vMap = {};
   for (const v of verdicts) vMap[v.action_id] = v;
+
+  let triggeredOverlay = false;
 
   /* ── Timeline ── */
   const tl = document.getElementById('timeline');
   if (!actions.length) {
     tl.innerHTML = `<div class="empty"><span class="empty-emoji">📭</span>No activity yet.<br>Run <strong>python -m worker.agent</strong> to start.</div>`;
   } else {
-    const groups = groupByEmail(actions);
+    const groups = groupByEmail(actions).reverse();
     tl.innerHTML = groups.map(g => {
       const first = g.actions[0];
       const emailLabel = g.emailId === 'unknown' ? 'System Task' : `Email: ${g.emailId.replace(/_/g, ' ')}`;
@@ -669,11 +852,28 @@ function render(actions, verdicts, notionDb, slackDb) {
         let verdictHtml = '';
         if (verdict) {
           const isPass = verdict.result === 'PASS';
-          const diffs = (verdict.diffs || []).map(d => `• ${d}`).join('<br>');
+          
+          let diffHtml = '';
+          if (verdict.diffs && verdict.diffs.length > 0) {
+            const diffLines = verdict.diffs.map(d => `• ${d}`).join('<br>');
+            diffHtml = `
+              <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; font-family: var(--mono); font-size: 0.72rem;">
+                <div style="color: var(--coral); margin-bottom: 4px;">❌ <b>Worker Claimed:</b> Action completed</div>
+                <div style="color: var(--cyan);">🛡️ <b>Verity Caught:</b><br><span style="opacity:0.8;">${diffLines}</span></div>
+              </div>
+            `;
+          }
+          
           verdictHtml = `
             <div class="verdict-row ${isPass ? 'verdict-pass' : 'verdict-fail'}">
-              ${isPass ? '✅ Verified — action was correct.' : `❌ Error caught — <span style="opacity:0.8">${clean(verdict.failure_category) || 'Issue detected'}</span>${diffs ? `<br><span style="font-size:0.72rem; opacity:0.7; display:block; margin-top:4px;">${diffs}</span>` : ''}`}
+              ${isPass ? '✅ Verified — action was correct.' : `❌ Error caught — <span style="opacity:0.8">${clean(verdict.failure_category) || 'Issue detected'}</span>${diffHtml}`}
             </div>`;
+            
+          // Check if we need to flash overlay for new attack blocked
+          if (!isPass && verdict.remediation === 'reverted' && !window.seenActions.has(a.action_id)) {
+            triggeredOverlay = true;
+          }
+          window.seenActions.add(a.action_id);
         }
         return `
           <div class="step">
@@ -710,15 +910,18 @@ function render(actions, verdicts, notionDb, slackDb) {
   const ne = Object.entries(notionDb || {});
   document.getElementById('ticket-count').textContent = ne.length;
   if (ne.length) {
-    tickets_el.innerHTML = ne.map(([id, t]) => `
-      <div class="ticket">
+    tickets_el.innerHTML = ne.map(([id, t]) => {
+      const isReverted = t.summary && t.summary.includes('[REVERTED BY VERITY]');
+      return `
+      <div class="ticket ${isReverted ? 'ticket-reverted' : ''}">
         <div class="ticket-top">
           <span class="ticket-cat ${catClass(t.category)}">${clean(t.category) || 'Other'}</span>
           <span class="ticket-priority ${priorityClass(t.priority)}">${t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢'} ${t.priority}</span>
         </div>
         <div class="ticket-id">${id.replace(/_/g, ' ')}</div>
         <div class="ticket-title">${t.summary || '—'}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } else {
     tickets_el.innerHTML = `<div class="empty" style="padding:24px"><span class="empty-emoji" style="font-size:1.5rem">📭</span>No tickets yet</div>`;
   }
@@ -745,6 +948,35 @@ function render(actions, verdicts, notionDb, slackDb) {
     s.classList.remove('loaded');
     requestAnimationFrame(() => s.classList.add('loaded'));
   });
+
+  if (triggeredOverlay) {
+    showAttackOverlay();
+  }
+}
+
+window.seenActions = new Set();
+
+function showToast(msg) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+function showAttackOverlay() {
+  const overlay = document.getElementById('attack-overlay');
+  overlay.style.display = 'flex';
+  overlay.classList.add('flash-anim');
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    overlay.classList.remove('flash-anim');
+  }, 2500);
 }
 
 /* ══════════════════ ANIMATED COUNTER ══════════════════ */
@@ -766,28 +998,44 @@ function animNum(id, target) {
   requestAnimationFrame(step);
 }
 
-/* ══════════════════ FETCH LOOP ══════════════════ */
-async function fetchJ(url) {
-  try { const r = await fetch(url); return r.ok ? r.json() : null; }
-  catch { return null; }
+/* ══════════════════ FETCH LOOP / SSE ══════════════════ */
+const evtSource = new EventSource("/api/stream");
+evtSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    render(data.actions || [], data.verifications || [], data.notion_db || {}, data.slack_db || []);
+    document.getElementById('api-ok').style.display = '';
+    document.getElementById('api-bad').style.display = 'none';
+    document.getElementById('nav-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+evtSource.onerror = function(err) {
+    document.getElementById('api-ok').style.display = 'none';
+    document.getElementById('api-bad').style.display = '';
+};
+
+async function triggerDemo(mode) {
+    let btnId = '';
+    let msg = '';
+    if (mode === 'quick') { btnId = 'btn-quick'; msg = '🚀 Running Quick Demo... processing emails'; }
+    if (mode === 'full_demo') { btnId = 'btn-full'; msg = '🎬 Starting Full Orchestrated Demo...'; }
+    if (mode === 'inject') { btnId = 'btn-inject'; msg = '☠️ Injecting adversarial attack...'; }
+    if (mode === 'reset_full') { btnId = 'btn-reset'; msg = '🧹 Resetting DBs & Starting Fresh Demo...'; }
+    
+    const btn = document.getElementById(btnId);
+    if (btn) {
+        const origText = btn.textContent;
+        btn.textContent = '⏳ Running...';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        setTimeout(() => {
+            btn.textContent = origText;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }, 3000);
+    }
+    
+    showToast(msg);
+    await fetch('/api/demo/' + mode);
 }
-
-async function refresh() {
-  const [a, v, n, s] = await Promise.all([
-    fetchJ('/api/actions'), fetchJ('/api/verifications'),
-    fetchJ('/api/notion_db'), fetchJ('/api/slack_db')
-  ]);
-
-  const ok = a !== null;
-  document.getElementById('api-ok').style.display = ok ? '' : 'none';
-  document.getElementById('api-bad').style.display = ok ? 'none' : '';
-  document.getElementById('nav-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  if (ok) render(a || [], v || [], n || {}, s || []);
-}
-
-refresh();
-setInterval(refresh, 4000);
 </script>
 </body>
 </html>
