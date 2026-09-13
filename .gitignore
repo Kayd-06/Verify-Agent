@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 venv/
 credentials.json
+shared/*.jsonl
+shared/*.json
