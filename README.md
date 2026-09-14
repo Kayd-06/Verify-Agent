@@ -11,9 +11,18 @@
   </div>
   <br>
 
-  <!-- Dashboard Demo Recording -->
-  <video src="https://github.com/Kayd-06/Verify-Agent/raw/main/assets/demo.mp4" autoplay loop muted width="800"></video>
 </div>
+
+<br>
+<p align="center">
+  <video src="https://github.com/Kayd-06/Verify-Agent/raw/main/assets/demo.mp4" controls="controls" muted="muted" style="max-width:100%;">
+    Your browser does not support the video tag.
+    <a href="https://github.com/Kayd-06/Verify-Agent/raw/main/assets/demo.mp4">Download the video</a>
+  </video>
+</p>
+<br>
+
+**Note:** If the video does not autoplay on your screen, click the play button or view it [here](https://github.com/Kayd-06/Verify-Agent/raw/main/assets/demo.mp4).
 
 ---
 
