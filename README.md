@@ -15,7 +15,7 @@
 
 <br>
 <p align="center">
-  https://github.com/Kayd-06/Verify-Agent/raw/main/assets/demo.mp4
+  <img src="assets/demo.gif" alt="Dashboard Demo Recording" width="800">
 </p>
 <br>
 
